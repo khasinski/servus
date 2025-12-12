@@ -49,6 +49,7 @@ module Servus
     include Servus::Support::Errors
     include Servus::Support::Rescuer
     include Servus::Events::Emitter
+    include Servus::Guards
 
     # Support class aliases
     Logger = Servus::Support::Logger
@@ -185,7 +186,14 @@ module Servus
         before_call(args)
 
         instance = new(**args)
-        result = benchmark(**args) { instance.call }
+
+        # Wrap execution in catch block to handle guard failures
+        result = catch(:guard_failure) do
+          benchmark(**args) { instance.call }
+        end
+
+        # If result is nil, a guard failed and set @failure_response
+        result = instance.instance_variable_get(:@failure_response) if result.nil?
 
         after_call(result, instance)
 
