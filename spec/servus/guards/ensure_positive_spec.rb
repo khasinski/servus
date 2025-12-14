@@ -92,24 +92,19 @@ RSpec.describe Servus::Guards::EnsurePositive do
     end
   end
 
-  describe '#api_error' do
-    it 'returns structured error response' do
+  describe '#error' do
+    it 'returns GuardError with correct metadata' do
       guard = described_class.new(amount: -10)
-      error = guard.api_error
+      error = guard.error
 
-      expect(error).to eq({
-                            code: 'must_be_positive',
-                            message: 'amount must be positive (got -10)',
-                            http_status: 422
-                          })
+      expect(error).to be_a(Servus::Support::Errors::GuardError)
+      expect(error.code).to eq('must_be_positive')
+      expect(error.message).to eq('amount must be positive (got -10)')
+      expect(error.http_status).to eq(422)
     end
   end
 
   describe 'metadata' do
-    it 'has correct severity' do
-      expect(described_class.severity_level).to eq(:failure)
-    end
-
     it 'has correct HTTP status' do
       expect(described_class.http_status_code).to eq(422)
     end

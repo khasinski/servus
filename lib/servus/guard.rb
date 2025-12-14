@@ -9,7 +9,6 @@ module Servus
   #
   # @example Basic guard
   #   class EnsureSufficientBalance < Servus::Guard
-  #     severity :failure
   #     http_status 422
   #     error_code 'insufficient_balance'
   #
@@ -72,24 +71,6 @@ module Servus
       def execute?(guard_class, **)
         guard_class.new(**).test(**)
       end
-
-      # Declares the severity level of the guard failure.
-      #
-      # @param level [Symbol] the severity (:warn, :failure, :error)
-      # @return [void]
-      #
-      # @example
-      #   class MyGuard < Servus::Guard
-      #     severity :failure
-      #   end
-      def severity(level)
-        @severity_level = level
-      end
-
-      # Returns the severity level.
-      #
-      # @return [Symbol, nil] the severity level or nil if not set
-      attr_reader :severity_level
 
       # Declares the HTTP status code for API responses.
       #
@@ -175,8 +156,6 @@ module Servus
         register_guard_methods(subclass)
       end
 
-      private
-
       # Defines bang and predicate methods on Servus::Guards for the guard class.
       #
       # @param guard_class [Class] the guard class to register
@@ -251,17 +230,6 @@ module Servus
       template % data
     end
 
-    # Returns the API error response structure.
-    #
-    # @return [Hash] error response with code, message, and http_status
-    def api_error
-      {
-        code: self.class.error_code_value || 'validation_failed',
-        message: message,
-        http_status: self.class.http_status_code || 422
-      }
-    end
-
     # Returns a GuardError instance configured with this guard's metadata.
     #
     # Called when a guard fails to create the error that gets thrown.
@@ -288,11 +256,7 @@ module Servus
     # @raise [NoMethodError] if the method is not found
     # @api private
     def method_missing(method_name, *args, &)
-      if kwargs.key?(method_name)
-        kwargs[method_name]
-      else
-        super
-      end
+      kwargs[method_name] || super
     end
 
     # Checks if the guard responds to a method.

@@ -15,7 +15,6 @@ module Servus
     # @example With custom parameter name
     #   ensure_positive!(balance: account.balance)
     class EnsurePositive < Servus::Guard
-      severity :failure
       http_status 422
       error_code 'must_be_positive'
 

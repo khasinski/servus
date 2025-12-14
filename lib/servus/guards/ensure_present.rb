@@ -21,7 +21,6 @@ module Servus
     # @example Multiple values
     #   ensure_present!(user: user, account: account, device: device)
     class EnsurePresent < Servus::Guard
-      severity :failure
       http_status 422
       error_code 'must_be_present'
 

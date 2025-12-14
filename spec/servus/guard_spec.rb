@@ -3,16 +3,6 @@
 require 'spec_helper'
 
 RSpec.describe Servus::Guard do
-  describe '.severity' do
-    it 'declares the severity level' do
-      guard_class = Class.new(described_class) do
-        severity :failure
-      end
-
-      expect(guard_class.severity_level).to eq(:failure)
-    end
-  end
-
   describe '.http_status' do
     it 'declares the HTTP status code' do
       guard_class = Class.new(described_class) do
@@ -261,38 +251,6 @@ RSpec.describe Servus::Guard do
     end
   end
 
-  describe '#api_error' do
-    it 'returns structured error response' do
-      guard_class = Class.new(described_class) do
-        severity :failure
-        http_status 422
-        error_code 'test_error'
-        message 'Test error message'
-      end
-
-      guard = guard_class.new
-      error = guard.api_error
-
-      expect(error).to eq({
-                            code: 'test_error',
-                            message: 'Test error message',
-                            http_status: 422
-                          })
-    end
-
-    it 'uses defaults when metadata not specified' do
-      guard_class = Class.new(described_class) do
-        message 'Test error'
-      end
-
-      guard = guard_class.new
-      error = guard.api_error
-
-      expect(error[:code]).to eq('validation_failed')
-      expect(error[:http_status]).to eq(422)
-    end
-  end
-
   describe '#method_missing' do
     it 'provides access to kwargs as methods' do
       guard_class = Class.new(described_class) do
@@ -334,7 +292,6 @@ RSpec.describe Servus::Guard do
       account_double = double(balance: 100)
 
       guard_class = Class.new(described_class) do
-        severity :failure
         http_status 422
         error_code 'insufficient_balance'
 
@@ -358,11 +315,13 @@ RSpec.describe Servus::Guard do
       guard = guard_class.new(account: account_double, amount: 150)
       expect(guard.test(account: account_double, amount: 150)).to be false
       expect(guard.message).to eq('Insufficient balance: need 150, have 100')
-      expect(guard.api_error).to eq({
-                                      code: 'insufficient_balance',
-                                      message: 'Insufficient balance: need 150, have 100',
-                                      http_status: 422
-                                    })
+
+      # Test error generation
+      error = guard.error
+      expect(error).to be_a(Servus::Support::Errors::GuardError)
+      expect(error.code).to eq('insufficient_balance')
+      expect(error.message).to eq('Insufficient balance: need 150, have 100')
+      expect(error.http_status).to eq(422)
     end
   end
 end
