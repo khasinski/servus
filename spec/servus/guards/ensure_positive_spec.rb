@@ -78,17 +78,17 @@ RSpec.describe Servus::Guards::EnsurePositive do
   describe '#message' do
     it 'includes parameter name and value' do
       guard = described_class.new(amount: -10)
-      expect(guard.message).to eq("amount must be positive (got -10)")
+      expect(guard.message).to eq('amount must be positive (got -10)')
     end
 
     it 'works with custom parameter name' do
       guard = described_class.new(balance: 0)
-      expect(guard.message).to eq("balance must be positive (got 0)")
+      expect(guard.message).to eq('balance must be positive (got 0)')
     end
 
     it 'shows nil value' do
       guard = described_class.new(amount: nil)
-      expect(guard.message).to eq("amount must be positive (got )")
+      expect(guard.message).to eq('amount must be positive (got )')
     end
   end
 
@@ -119,9 +119,13 @@ RSpec.describe Servus::Guards::EnsurePositive do
     end
   end
 
-  describe 'registry integration' do
-    it 'is registered as ensure_positive!' do
-      expect(Servus::Guards::Registry.get(:ensure_positive!)).to eq(described_class)
+  describe 'method definition' do
+    it 'defines ensure_positive! on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:ensure_positive!)).to be true
+    end
+
+    it 'defines ensure_positive? on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:ensure_positive?)).to be true
     end
   end
 end

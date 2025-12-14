@@ -25,9 +25,9 @@ module Servus
       http_status 422
       error_code 'must_be_present'
 
-      message "%{key_names} must be present" do
+      message '%<key_names>s must be present' do
         {
-          key_names: kwargs.keys.map(&:to_s).join(", ")
+          key_names: kwargs.keys.map(&:to_s).join(', ')
         }
       end
 

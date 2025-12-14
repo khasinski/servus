@@ -102,17 +102,17 @@ RSpec.describe Servus::Guards::EnsurePresent do
   describe '#message' do
     it 'includes all key names in the message' do
       guard = described_class.new(user: nil, account: nil)
-      expect(guard.message).to eq("user, account must be present")
+      expect(guard.message).to eq('user, account must be present')
     end
 
     it 'handles single key' do
       guard = described_class.new(email: nil)
-      expect(guard.message).to eq("email must be present")
+      expect(guard.message).to eq('email must be present')
     end
 
     it 'handles multiple keys' do
       guard = described_class.new(user: nil, account: nil, device: nil)
-      expect(guard.message).to eq("user, account, device must be present")
+      expect(guard.message).to eq('user, account, device must be present')
     end
   end
 
@@ -143,9 +143,13 @@ RSpec.describe Servus::Guards::EnsurePresent do
     end
   end
 
-  describe 'registry integration' do
-    it 'is registered as ensure_present!' do
-      expect(Servus::Guards::Registry.get(:ensure_present!)).to eq(described_class)
+  describe 'method definition' do
+    it 'defines ensure_present! on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:ensure_present!)).to be true
+    end
+
+    it 'defines ensure_present? on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:ensure_present?)).to be true
     end
   end
 end

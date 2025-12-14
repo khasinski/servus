@@ -31,12 +31,9 @@ require_relative 'servus/events/bus'
 require_relative 'servus/events/emitter'
 require_relative 'servus/event_handler'
 
-# Guards
-require_relative 'servus/guards/registry'
+# Guards (guards.rb loads defaults based on config)
 require_relative 'servus/guard'
 require_relative 'servus/guards'
-require_relative 'servus/guards/ensure_present'
-require_relative 'servus/guards/ensure_positive'
 
 # Core
 require_relative 'servus/version'

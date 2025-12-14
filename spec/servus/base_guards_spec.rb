@@ -3,13 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe Servus::Base, 'Guards Integration' do
-  after do
-    Servus::Guards::Registry.clear
-  end
-
   describe 'guard methods' do
     it 'provides guard methods via method_missing' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService1', Class.new(described_class) do
         def initialize(amount:)
           @amount = amount
         end
@@ -18,7 +14,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_positive!(amount: @amount)
           success({ result: 'processed' })
         end
-      end
+      end)
 
       result = service_class.call(amount: 100)
       expect(result.success?).to be true
@@ -26,7 +22,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'stops execution when guard fails' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService2', Class.new(described_class) do
         def initialize(amount:)
           @amount = amount
         end
@@ -35,7 +31,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_positive!(amount: @amount)
           success({ result: 'processed' })
         end
-      end
+      end)
 
       result = service_class.call(amount: -10)
       expect(result.success?).to be false
@@ -43,7 +39,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'works with multiple guards' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService3', Class.new(described_class) do
         def initialize(user:, amount:)
           @user = user
           @amount = amount
@@ -54,7 +50,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_positive!(amount: @amount)
           success({ result: 'processed' })
         end
-      end
+      end)
 
       # All guards pass
       result = service_class.call(user: 'user123', amount: 100)
@@ -72,7 +68,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'works in nested private methods' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService4', Class.new(described_class) do
         def initialize(user:, amount:)
           @user = user
           @amount = amount
@@ -89,7 +85,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_present!(user: @user)
           ensure_positive!(amount: @amount)
         end
-      end
+      end)
 
       # Guards pass
       result = service_class.call(user: 'user123', amount: 100)
@@ -102,7 +98,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'works in deeply nested methods' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService5', Class.new(described_class) do
         def initialize(user:, amount:)
           @user = user
           @amount = amount
@@ -127,7 +123,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_present!(user: @user)
           ensure_positive!(amount: @amount)
         end
-      end
+      end)
 
       # Guards pass
       result = service_class.call(user: 'user123', amount: 100)
@@ -140,12 +136,12 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'raises NoMethodError for non-existent guard' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService6', Class.new(described_class) do
         def call
           ensure_non_existent!(value: 123)
           success({})
         end
-      end
+      end)
 
       expect { service_class.call }.to raise_error(NoMethodError, /ensure_non_existent!/)
     end
@@ -153,7 +149,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
 
   describe 'backward compatibility with raise' do
     it 'still works with traditional raise approach' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService7', Class.new(described_class) do
         def initialize(amount:)
           @amount = amount
         end
@@ -163,7 +159,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
 
           success({ result: 'processed' })
         end
-      end
+      end)
 
       # Success case
       result = service_class.call(amount: 100)
@@ -175,7 +171,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'can mix guards and raises' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService8', Class.new(described_class) do
         def initialize(user:, amount:)
           @user = user
           @amount = amount
@@ -199,7 +195,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         def system_down?
           false
         end
-      end
+      end)
 
       result = service_class.call(user: 'user123', amount: 100)
       expect(result.success?).to be true
@@ -213,11 +209,11 @@ RSpec.describe Servus::Base, 'Guards Integration' do
 
   describe 'respond_to?' do
     it 'returns true for registered guard methods' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService9', Class.new(described_class) do
         def call
           success({})
         end
-      end
+      end)
 
       instance = service_class.new
       expect(instance.respond_to?(:ensure_present!)).to be true
@@ -225,11 +221,11 @@ RSpec.describe Servus::Base, 'Guards Integration' do
     end
 
     it 'returns false for non-existent guard methods' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService10', Class.new(described_class) do
         def call
           success({})
         end
-      end
+      end)
 
       instance = service_class.new
       expect(instance.respond_to?(:ensure_non_existent!)).to be false
@@ -238,7 +234,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
 
   describe 'error response structure' do
     it 'returns proper failure response with guard metadata' do
-      service_class = Class.new(described_class) do
+      service_class = stub_const('GuardTestService11', Class.new(described_class) do
         def initialize(amount:)
           @amount = amount
         end
@@ -247,13 +243,55 @@ RSpec.describe Servus::Base, 'Guards Integration' do
           ensure_positive!(amount: @amount)
           success({ result: 'processed' })
         end
-      end
+      end)
 
       result = service_class.call(amount: -10)
 
       expect(result.success?).to be false
       expect(result.error).to be_a(Servus::Support::Errors::ServiceError)
       expect(result.error.message).to eq('amount must be positive (got -10)')
+    end
+  end
+
+  describe 'predicate guard methods' do
+    it 'returns true when guard passes' do
+      service_class = stub_const('GuardTestService12', Class.new(described_class) do
+        def initialize(amount:)
+          @amount = amount
+        end
+
+        def call
+          if ensure_positive?(amount: @amount)
+            success({ validated: true })
+          else
+            success({ validated: false })
+          end
+        end
+      end)
+
+      result = service_class.call(amount: 100)
+      expect(result.success?).to be true
+      expect(result.data[:validated]).to be true
+    end
+
+    it 'returns false when guard fails without throwing' do
+      service_class = stub_const('GuardTestService13', Class.new(described_class) do
+        def initialize(amount:)
+          @amount = amount
+        end
+
+        def call
+          if ensure_positive?(amount: @amount)
+            success({ validated: true })
+          else
+            success({ validated: false })
+          end
+        end
+      end)
+
+      result = service_class.call(amount: -10)
+      expect(result.success?).to be true
+      expect(result.data[:validated]).to be false
     end
   end
 end

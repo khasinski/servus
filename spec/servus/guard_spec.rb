@@ -3,10 +3,6 @@
 require 'spec_helper'
 
 RSpec.describe Servus::Guard do
-  after do
-    Servus::Guards::Registry.clear
-  end
-
   describe '.severity' do
     it 'declares the severity level' do
       guard_class = Class.new(described_class) do
@@ -40,20 +36,20 @@ RSpec.describe Servus::Guard do
   describe '.message' do
     it 'declares a static message template' do
       guard_class = Class.new(described_class) do
-        message "Value must be positive"
+        message 'Value must be positive'
       end
 
-      expect(guard_class.message_template).to eq("Value must be positive")
+      expect(guard_class.message_template).to eq('Value must be positive')
     end
 
     it 'declares a message template with interpolation block' do
       guard_class = Class.new(described_class) do
-        message "Balance: %{amount}" do
+        message 'Balance: %<amount>s' do
           { amount: 100 }
         end
       end
 
-      expect(guard_class.message_template).to eq("Balance: %{amount}")
+      expect(guard_class.message_template).to eq('Balance: %<amount>s')
       expect(guard_class.message_block).to be_a(Proc)
     end
 
@@ -67,16 +63,16 @@ RSpec.describe Servus::Guard do
 
     it 'supports Hash for inline translations' do
       guard_class = Class.new(described_class) do
-        message(en: "English", es: "Español")
+        message(en: 'English', es: 'Español')
       end
 
       expect(guard_class.message_template).to be_a(Hash)
-      expect(guard_class.message_template[:en]).to eq("English")
+      expect(guard_class.message_template[:en]).to eq('English')
     end
 
     it 'supports Proc for dynamic templates' do
       guard_class = Class.new(described_class) do
-        message -> { "Dynamic message" }
+        message -> { 'Dynamic message' }
       end
 
       expect(guard_class.message_template).to be_a(Proc)
@@ -84,12 +80,36 @@ RSpec.describe Servus::Guard do
   end
 
   describe '.inherited' do
-    it 'registers the guard with the registry' do
-      guard_class = Class.new(described_class)
+    it 'defines bang method on Servus::Guards when class has a name' do
+      guard_class = Class.new(described_class) do
+        def test(**) = true
+      end
       stub_const('EnsureSufficientBalance', guard_class)
 
-      # The guard should be registered
-      expect(Servus::Guards::Registry.get(:ensure_sufficient_balance!)).to eq(guard_class)
+      # Manually trigger method definition (inherited hook fired before stub_const)
+      described_class.send(:register_guard_methods, guard_class)
+
+      expect(Servus::Guards.method_defined?(:ensure_sufficient_balance!)).to be true
+    end
+
+    it 'defines predicate method on Servus::Guards when class has a name' do
+      guard_class = Class.new(described_class) do
+        def test(**) = true
+      end
+      stub_const('EnsureValidAmount', guard_class)
+
+      # Manually trigger method definition
+      described_class.send(:register_guard_methods, guard_class)
+
+      expect(Servus::Guards.method_defined?(:ensure_valid_amount?)).to be true
+    end
+
+    it 'skips method definition for anonymous classes' do
+      # Anonymous classes should not crash or define methods
+      guard_class = Class.new(described_class)
+
+      # Should not define any new methods (no name to derive method from)
+      expect { guard_class }.not_to raise_error
     end
   end
 
@@ -129,11 +149,11 @@ RSpec.describe Servus::Guard do
     context 'with static string template' do
       it 'returns the static message' do
         guard_class = Class.new(described_class) do
-          message "Static error message"
+          message 'Static error message'
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("Static error message")
+        expect(guard.message).to eq('Static error message')
       end
     end
 
@@ -142,7 +162,7 @@ RSpec.describe Servus::Guard do
         account_double = double(balance: 100)
 
         guard_class = Class.new(described_class) do
-          message "Insufficient balance: need %{required}, have %{available}" do
+          message 'Insufficient balance: need %<required>s, have %<available>s' do
             {
               required: amount,
               available: account.balance
@@ -155,23 +175,23 @@ RSpec.describe Servus::Guard do
         end
 
         guard = guard_class.new(account: account_double, amount: 150)
-        expect(guard.message).to eq("Insufficient balance: need 150, have 100")
+        expect(guard.message).to eq('Insufficient balance: need 150, have 100')
       end
     end
 
     context 'with Symbol template (I18n)' do
       it 'resolves I18n key when I18n is available' do
-        skip "I18n not available in test environment" unless defined?(I18n)
+        skip 'I18n not available in test environment' unless defined?(I18n)
 
         allow(I18n).to receive(:t).with('guards.insufficient_balance', any_args)
-                                   .and_return("Saldo insuficiente")
+                                  .and_return('Saldo insuficiente')
 
         guard_class = Class.new(described_class) do
           message :insufficient_balance
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("Saldo insuficiente")
+        expect(guard.message).to eq('Saldo insuficiente')
       end
 
       it 'falls back to humanized key when I18n is not available' do
@@ -180,44 +200,44 @@ RSpec.describe Servus::Guard do
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("Insufficient balance")
+        expect(guard.message).to eq('Insufficient balance')
       end
     end
 
     context 'with Hash template (inline translations)' do
       it 'returns the message for the current locale' do
-        skip "I18n not available in test environment" unless defined?(I18n)
+        skip 'I18n not available in test environment' unless defined?(I18n)
 
         allow(I18n).to receive(:locale).and_return(:es)
 
         guard_class = Class.new(described_class) do
-          message(en: "English message", es: "Mensaje en español")
+          message(en: 'English message', es: 'Mensaje en español')
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("Mensaje en español")
+        expect(guard.message).to eq('Mensaje en español')
       end
 
       it 'falls back to :en when locale not found' do
-        skip "I18n not available in test environment" unless defined?(I18n)
+        skip 'I18n not available in test environment' unless defined?(I18n)
 
         allow(I18n).to receive(:locale).and_return(:fr)
 
         guard_class = Class.new(described_class) do
-          message(en: "English message", es: "Mensaje en español")
+          message(en: 'English message', es: 'Mensaje en español')
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("English message")
+        expect(guard.message).to eq('English message')
       end
 
       it 'returns first value when I18n is not available' do
         guard_class = Class.new(described_class) do
-          message(en: "English message", es: "Mensaje en español")
+          message(en: 'English message', es: 'Mensaje en español')
         end
 
         guard = guard_class.new
-        expect(guard.message).to eq("English message")
+        expect(guard.message).to eq('English message')
       end
     end
 
@@ -236,7 +256,7 @@ RSpec.describe Servus::Guard do
 
         guard = guard_class.new(limit_type: 'daily')
         guard.test(limit_type: 'daily')
-        expect(guard.message).to eq("Dynamic: daily")
+        expect(guard.message).to eq('Dynamic: daily')
       end
     end
   end
@@ -247,7 +267,7 @@ RSpec.describe Servus::Guard do
         severity :failure
         http_status 422
         error_code 'test_error'
-        message "Test error message"
+        message 'Test error message'
       end
 
       guard = guard_class.new
@@ -262,7 +282,7 @@ RSpec.describe Servus::Guard do
 
     it 'uses defaults when metadata not specified' do
       guard_class = Class.new(described_class) do
-        message "Test error"
+        message 'Test error'
       end
 
       guard = guard_class.new
@@ -276,13 +296,13 @@ RSpec.describe Servus::Guard do
   describe '#method_missing' do
     it 'provides access to kwargs as methods' do
       guard_class = Class.new(described_class) do
-        message "Amount: %{value}" do
+        message 'Amount: %<value>s' do
           { value: amount }
         end
       end
 
       guard = guard_class.new(amount: 100)
-      expect(guard.message).to eq("Amount: 100")
+      expect(guard.message).to eq('Amount: 100')
     end
 
     it 'raises NoMethodError for non-existent keys' do
@@ -318,7 +338,7 @@ RSpec.describe Servus::Guard do
         http_status 422
         error_code 'insufficient_balance'
 
-        message "Insufficient balance: need %{required}, have %{available}" do
+        message 'Insufficient balance: need %<required>s, have %<available>s' do
           {
             required: amount,
             available: account.balance
@@ -337,7 +357,7 @@ RSpec.describe Servus::Guard do
       # Test failing case
       guard = guard_class.new(account: account_double, amount: 150)
       expect(guard.test(account: account_double, amount: 150)).to be false
-      expect(guard.message).to eq("Insufficient balance: need 150, have 100")
+      expect(guard.message).to eq('Insufficient balance: need 150, have 100')
       expect(guard.api_error).to eq({
                                       code: 'insufficient_balance',
                                       message: 'Insufficient balance: need 150, have 100',

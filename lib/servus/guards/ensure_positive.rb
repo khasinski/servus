@@ -19,7 +19,7 @@ module Servus
       http_status 422
       error_code 'must_be_positive'
 
-      message "%{key_name} must be positive (got %{value})" do
+      message '%<key_name>s must be positive (got %<value>s)' do
         key = kwargs.keys.first
         {
           key_name: key.to_s,
@@ -33,7 +33,7 @@ module Servus
       # @return [Boolean] true if the value is greater than zero
       def test(**values)
         value = values.values.first
-        value.is_a?(Numeric) && value > 0
+        value.is_a?(Numeric) && value.positive?
       end
     end
   end

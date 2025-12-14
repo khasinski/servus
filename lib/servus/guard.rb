@@ -34,10 +34,45 @@ module Servus
   #     end
   #   end
   #
-  # @see Servus::Guards::Registry
+  # @see Servus::Guards
   # @see Servus::Base
   class Guard
     class << self
+      # Executes a guard and throws :guard_failure with the guard's error if validation fails.
+      #
+      # This is the bang (!) execution method that halts execution on failure.
+      # The caller is responsible for catching the thrown error and handling it.
+      #
+      # @param guard_class [Class] the guard class to execute
+      # @param kwargs [Hash] keyword arguments for the guard
+      # @return [void] returns nil if guard passes
+      # @throw [:guard_failure, GuardError] if guard fails
+      #
+      # @example
+      #   Servus::Guard.execute!(EnsurePositive, amount: 100)  # passes, returns nil
+      #   Servus::Guard.execute!(EnsurePositive, amount: -10) # throws :guard_failure
+      def execute!(guard_class, **)
+        guard = guard_class.new(**)
+        return if guard.test(**)
+
+        throw(:guard_failure, guard.error)
+      end
+
+      # Executes a guard and returns boolean result without throwing.
+      #
+      # This is the predicate (?) execution method for conditional checks.
+      #
+      # @param guard_class [Class] the guard class to execute
+      # @param kwargs [Hash] keyword arguments for the guard
+      # @return [Boolean] true if guard passes, false otherwise
+      #
+      # @example
+      #   Servus::Guard.execute?(EnsurePositive, amount: 100) # => true
+      #   Servus::Guard.execute?(EnsurePositive, amount: -10) # => false
+      def execute?(guard_class, **)
+        guard_class.new(**).test(**)
+      end
+
       # Declares the severity level of the guard failure.
       #
       # @param level [Symbol] the severity (:warn, :failure, :error)
@@ -115,7 +150,7 @@ module Servus
       #   end
       def message(template, &block)
         @message_template = template
-        @message_block = block if block_given?
+        @message_block    = block if block_given?
       end
 
       # Returns the message template.
@@ -130,14 +165,50 @@ module Servus
 
       # Hook called when a class inherits from Guard.
       #
-      # Automatically registers the guard with the registry for method_missing lookup.
+      # Automatically defines guard methods on the Servus::Guards module.
       #
       # @param subclass [Class] the inheriting class
       # @return [void]
       # @api private
       def inherited(subclass)
         super
-        Servus::Guards::Registry.register(subclass)
+        register_guard_methods(subclass)
+      end
+
+      private
+
+      # Defines bang and predicate methods on Servus::Guards for the guard class.
+      #
+      # @param guard_class [Class] the guard class to register
+      # @return [void]
+      # @api private
+      def register_guard_methods(guard_class)
+        return unless guard_class.name
+
+        method_name = derive_method_name(guard_class)
+
+        # Define bang method (throws on failure)
+        Servus::Guards.define_method("#{method_name}!") do |**kwargs|
+          Servus::Guard.execute!(guard_class, **kwargs)
+        end
+
+        # Define predicate method (returns boolean)
+        Servus::Guards.define_method("#{method_name}?") do |**kwargs|
+          Servus::Guard.execute?(guard_class, **kwargs)
+        end
+      end
+
+      # Converts a guard class name to a method name.
+      #
+      # @param guard_class [Class] the guard class
+      # @return [String] the method name (without ! or ?)
+      # @api private
+      def derive_method_name(guard_class)
+        class_name = guard_class.name.split('::').last
+        "ensure_#{class_name.gsub(/^Ensure/, '')
+          .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+          .downcase}"
       end
     end
 
@@ -191,6 +262,20 @@ module Servus
       }
     end
 
+    # Returns a GuardError instance configured with this guard's metadata.
+    #
+    # Called when a guard fails to create the error that gets thrown.
+    # The caller decides how to handle the error (e.g., wrap in a failure response).
+    #
+    # @return [Servus::Support::Errors::GuardError] the error instance
+    def error
+      Servus::Support::Errors::GuardError.new(
+        message,
+        code: self.class.error_code_value || 'validation_failed',
+        http_status: self.class.http_status_code || 422
+      )
+    end
+
     # Provides convenience access to kwargs as methods.
     #
     # This allows the message data block to access parameters directly
@@ -202,7 +287,7 @@ module Servus
     # @return [Object] the value from kwargs
     # @raise [NoMethodError] if the method is not found
     # @api private
-    def method_missing(method_name, *args, &block)
+    def method_missing(method_name, *args, &)
       if kwargs.key?(method_name)
         kwargs[method_name]
       else

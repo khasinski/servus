@@ -184,6 +184,43 @@ module Servus
         DEFAULT_MESSAGE = 'Validation failed'
       end
 
+      # Represents guard validation failures with rich metadata.
+      #
+      # Guards throw this error when validation fails. The error carries
+      # metadata from the guard class (code, http_status) for API responses.
+      #
+      # @example Guard throwing a GuardError
+      #   throw(:guard_failure, GuardError.new(
+      #     "amount must be positive",
+      #     code: "invalid_amount",
+      #     http_status: 422
+      #   ))
+      #
+      # @see Servus::Guard
+      class GuardError < ServiceError
+        DEFAULT_MESSAGE = 'Guard validation failed'
+
+        attr_reader :code, :http_status
+
+        # Creates a new guard error with metadata.
+        #
+        # @param message [String, nil] error message
+        # @param code [String] error code for API responses (default: 'validation_failed')
+        # @param http_status [Integer] HTTP status code (default: 422)
+        def initialize(message = nil, code: 'validation_failed', http_status: 422)
+          super(message)
+          @code = code
+          @http_status = http_status
+        end
+
+        # Returns an API-friendly error response with guard metadata.
+        #
+        # @return [Hash] hash with :code, :message, and :http_status keys
+        def api_error
+          { code: code, message: message, http_status: http_status }
+        end
+      end
+
       # Represents a 500 Internal Server Error.
       #
       # Use this error for unexpected server-side failures.

@@ -192,8 +192,8 @@ module Servus
           benchmark(**args) { instance.call }
         end
 
-        # If result is nil, a guard failed and set @failure_response
-        result = instance.instance_variable_get(:@failure_response) if result.nil?
+        # If result is a GuardError, a guard failed - wrap in failure Response
+        result = Response.new(false, nil, result) if result.is_a?(Servus::Support::Errors::GuardError)
 
         after_call(result, instance)
 
