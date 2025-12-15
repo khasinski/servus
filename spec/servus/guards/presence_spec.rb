@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Servus::Guards::EnsurePresent do
+RSpec.describe Servus::Guards::PresenceGuard do
   describe '#test' do
     context 'with all present values' do
       it 'returns true for non-nil values' do
@@ -139,12 +139,12 @@ RSpec.describe Servus::Guards::EnsurePresent do
   end
 
   describe 'method definition' do
-    it 'defines ensure_present! on Servus::Guards' do
-      expect(Servus::Guards.method_defined?(:ensure_present!)).to be true
+    it 'defines enforce_presence! on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:enforce_presence!)).to be true
     end
 
-    it 'defines ensure_present? on Servus::Guards' do
-      expect(Servus::Guards.method_defined?(:ensure_present?)).to be true
+    it 'defines check_presence? on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:check_presence?)).to be true
     end
   end
 end

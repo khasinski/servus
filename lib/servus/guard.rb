@@ -8,7 +8,7 @@ module Servus
   # scattering validation logic throughout services.
   #
   # @example Basic guard
-  #   class EnsureSufficientBalance < Servus::Guard
+  #   class SufficientBalanceGuard < Servus::Guard
   #     http_status 422
   #     error_code 'insufficient_balance'
   #
@@ -27,7 +27,7 @@ module Servus
   # @example Using a guard in a service
   #   class TransferService < Servus::Base
   #     def call
-  #       ensure_sufficient_balance!(account: from_account, amount: amount)
+  #       enforce_sufficient_balance!(account: from_account, amount: amount)
   #       # ... perform transfer ...
   #       success(result)
   #     end
@@ -158,36 +158,52 @@ module Servus
 
       # Defines bang and predicate methods on Servus::Guards for the guard class.
       #
+      # Creates two methods:
+      #   - enforce_<name>! (throws :guard_failure on validation failure)
+      #   - check_<name>? (returns boolean)
+      #
       # @param guard_class [Class] the guard class to register
       # @return [void]
       # @api private
+      #
+      # @example
+      #   # For SufficientBalanceGuard, creates:
+      #   #   enforce_sufficient_balance!(account:, amount:)
+      #   #   check_sufficient_balance?(account:, amount:)
       def register_guard_methods(guard_class)
         return unless guard_class.name
 
-        method_name = derive_method_name(guard_class)
+        base_name = derive_method_name(guard_class)
 
         # Define bang method (throws on failure)
-        Servus::Guards.define_method("#{method_name}!") do |**kwargs|
+        Servus::Guards.define_method("enforce_#{base_name}!") do |**kwargs|
           Servus::Guard.execute!(guard_class, **kwargs)
         end
 
         # Define predicate method (returns boolean)
-        Servus::Guards.define_method("#{method_name}?") do |**kwargs|
+        Servus::Guards.define_method("check_#{base_name}?") do |**kwargs|
           Servus::Guard.execute?(guard_class, **kwargs)
         end
       end
 
       # Converts a guard class name to a method name.
       #
+      # Strips the 'Guard' suffix and converts to snake_case.
+      # The resulting name is used with 'enforce_' and 'check_' prefixes.
+      #
       # @param guard_class [Class] the guard class
-      # @return [String] the method name (without ! or ?)
+      # @return [String] the base method name (without enforce_/check_ prefix or ! or ?)
       # @api private
+      #
+      # @example
+      #   derive_method_name(SufficientBalanceGuard) # => "sufficient_balance"
+      #   derive_method_name(PresenceGuard) # => "presence"
       def derive_method_name(guard_class)
         class_name = guard_class.name.split('::').last
-        "ensure_#{class_name.gsub(/^Ensure/, '')
+        class_name.gsub(/Guard$/, '')
           .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
           .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-          .downcase}"
+          .downcase
       end
     end
 

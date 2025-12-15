@@ -11,7 +11,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          ensure_positive!(amount: @amount)
+          enforce_positive!(amount: @amount)
           success({ result: 'processed' })
         end
       end)
@@ -28,7 +28,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          ensure_positive!(amount: @amount)
+          enforce_positive!(amount: @amount)
           success({ result: 'processed' })
         end
       end)
@@ -46,8 +46,8 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          ensure_present!(user: @user)
-          ensure_positive!(amount: @amount)
+          enforce_presence!(user: @user)
+          enforce_positive!(amount: @amount)
           success({ result: 'processed' })
         end
       end)
@@ -82,8 +82,8 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         private
 
         def validate_inputs
-          ensure_present!(user: @user)
-          ensure_positive!(amount: @amount)
+          enforce_presence!(user: @user)
+          enforce_positive!(amount: @amount)
         end
       end)
 
@@ -120,8 +120,8 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def level3
-          ensure_present!(user: @user)
-          ensure_positive!(amount: @amount)
+          enforce_presence!(user: @user)
+          enforce_positive!(amount: @amount)
         end
       end)
 
@@ -179,13 +179,13 @@ RSpec.describe Servus::Base, 'Guards Integration' do
 
         def call
           # Use guard for validation
-          ensure_present!(user: @user)
+          enforce_presence!(user: @user)
 
           # Use raise for exceptional error
           raise Servus::Support::Errors::ServiceError, 'System unavailable' if system_down?
 
           # Use guard for business rule
-          ensure_positive!(amount: @amount)
+          enforce_positive!(amount: @amount)
 
           success({ result: 'processed' })
         end
@@ -216,8 +216,8 @@ RSpec.describe Servus::Base, 'Guards Integration' do
       end)
 
       instance = service_class.new
-      expect(instance.respond_to?(:ensure_present!)).to be true
-      expect(instance.respond_to?(:ensure_positive!)).to be true
+      expect(instance.respond_to?(:enforce_presence!)).to be true
+      expect(instance.respond_to?(:enforce_positive!)).to be true
     end
 
     it 'returns false for non-existent guard methods' do
@@ -240,7 +240,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          ensure_positive!(amount: @amount)
+          enforce_positive!(amount: @amount)
           success({ result: 'processed' })
         end
       end)
@@ -261,7 +261,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          if ensure_positive?(amount: @amount)
+          if check_positive?(amount: @amount)
             success({ validated: true })
           else
             success({ validated: false })
@@ -281,7 +281,7 @@ RSpec.describe Servus::Base, 'Guards Integration' do
         end
 
         def call
-          if ensure_positive?(amount: @amount)
+          if check_positive?(amount: @amount)
             success({ validated: true })
           else
             success({ validated: false })

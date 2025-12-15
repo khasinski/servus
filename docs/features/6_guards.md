@@ -22,8 +22,8 @@ Use guards for clean, declarative validation:
 ```ruby
 # With guards - clear and reusable
 def call
-  ensure_present!(user: user)
-  ensure_positive!(amount: amount)
+  enforce_present!(user: user)
+  enforce_positive!(amount: amount)
   # ... business logic ...
 end
 ```
@@ -32,31 +32,31 @@ end
 
 Servus includes two guards by default:
 
-### EnsurePresent
+### PresenceGuard
 
 Validates that all values are present (not nil or empty):
 
 ```ruby
 # Single value
-ensure_present!(user: user)
+enforce_present!(user: user)
 
 # Multiple values - all must be present
-ensure_present!(user: user, account: account, device: device)
+enforce_present!(user: user, account: account, device: device)
 
 # Works with strings, arrays, hashes
-ensure_present!(email: email)           # fails if nil or ""
-ensure_present!(items: cart.items)      # fails if nil or []
-ensure_present!(data: response.body)    # fails if nil or {}
+enforce_present!(email: email)           # fails if nil or ""
+enforce_present!(items: cart.items)      # fails if nil or []
+enforce_present!(data: response.body)    # fails if nil or {}
 ```
 
-### EnsurePositive
+### PositiveGuard
 
 Validates that a numeric value is greater than zero:
 
 ```ruby
-ensure_positive!(amount: amount)
-ensure_positive!(balance: account.balance)
-ensure_positive!(quantity: line_item.quantity)
+enforce_positive!(amount: amount)
+enforce_positive!(balance: account.balance)
+enforce_positive!(quantity: line_item.quantity)
 ```
 
 ## Guard Methods
@@ -68,10 +68,10 @@ Each guard defines two methods on `Servus::Guards`:
 
 ```ruby
 # Bang method - use for preconditions that must pass
-ensure_present!(user: user)  # throws :guard_failure if nil
+enforce_present!(user: user)  # throws :guard_failure if nil
 
 # Predicate method - use for conditional logic
-if ensure_positive?(amount: amount)
+if enforce_positive?(amount: amount)
   process_payment(amount)
 else
   apply_refund(amount.abs)
@@ -83,7 +83,7 @@ end
 Define guards by inheriting from `Servus::Guard`:
 
 ```ruby
-# app/guards/ensure_sufficient_balance_guard.rb
+# app/guards/enforce_sufficient_balance_guard.rb
 class EnsureSufficientBalanceGuard < Servus::Guard
   http_status 422
   error_code 'insufficient_balance'
@@ -101,7 +101,7 @@ class EnsureSufficientBalanceGuard < Servus::Guard
 end
 ```
 
-This automatically defines `ensure_sufficient_balance!` and `ensure_sufficient_balance?` methods.
+This automatically defines `enforce_sufficient_balance!` and `enforce_sufficient_balance?` methods.
 
 ### Guard DSL
 
@@ -186,7 +186,7 @@ When a bang guard fails, it throws `:guard_failure` with a `GuardError`. Service
 ```ruby
 class TransferService < Servus::Base
   def call
-    ensure_sufficient_balance!(account: from_account, amount: amount)
+    enforce_sufficient_balance!(account: from_account, amount: amount)
     # If guard fails, execution stops here
     # Service returns: Response(success: false, error: GuardError)
 
@@ -211,11 +211,11 @@ Guard class names are converted to method names:
 
 | Class Name | Bang Method | Predicate Method |
 |------------|-------------|------------------|
-| `EnsureSufficientBalanceGuard` | `ensure_sufficient_balance!` | `ensure_sufficient_balance?` |
-| `EnsureValidAmountGuard` | `ensure_valid_amount!` | `ensure_valid_amount?` |
-| `EnsureAuthorizedGuard` | `ensure_authorized!` | `ensure_authorized?` |
+| `EnsureSufficientBalanceGuard` | `enforce_sufficient_balance!` | `enforce_sufficient_balance?` |
+| `EnsureValidAmountGuard` | `enforce_valid_amount!` | `enforce_valid_amount?` |
+| `EnsureAuthorizedGuard` | `enforce_authorized!` | `enforce_authorized?` |
 
-The `Ensure` prefix is normalized to avoid `ensure_ensure_...` patterns.
+The `Ensure` prefix is normalized to avoid `enforce_enforce_...` patterns.
 
 ## Rails Auto-Loading
 
@@ -223,9 +223,9 @@ In Rails, guards in `app/guards/` are automatically loaded. Files must follow th
 
 ```
 app/guards/
-├── ensure_sufficient_balance_guard.rb
-├── ensure_valid_amount_guard.rb
-└── ensure_authorized_guard.rb
+├── enforce_sufficient_balance_guard.rb
+├── enforce_valid_amount_guard.rb
+└── enforce_authorized_guard.rb
 ```
 
 ## Configuration
