@@ -6,7 +6,7 @@ Servus works without configuration. Optional settings exist for customizing dire
 
 ## Directory Configuration
 
-Configure where Servus looks for schemas, services, and event handlers:
+Configure where Servus looks for schemas, services, event handlers, and guards:
 
 ```ruby
 # config/initializers/servus.rb
@@ -19,10 +19,13 @@ Servus.configure do |config|
 
   # Default: 'app/events'
   config.events_dir = 'app/events'
+
+  # Default: 'app/guards'
+  config.guards_dir = 'app/guards'
 end
 ```
 
-These affect legacy file-based schemas and handler auto-loading. Schemas defined via the `schema` DSL method do not use files.
+These affect legacy file-based schemas, handler auto-loading, and guard auto-loading. Schemas defined via the `schema` DSL method do not use files.
 
 ## Schema Cache
 
@@ -54,6 +57,53 @@ config.active_job.default_queue_name = :default
 ```
 
 Servus respects ActiveJob queue configuration - no Servus-specific setup needed.
+
+## Guards Configuration
+
+### Default Guards
+
+Servus includes built-in guards (`PresenceGuard`, `TruthyGuard`, `FalseyGuard`, `StateGuard`) that are loaded by default. Disable them if you want to define your own:
+
+```ruby
+# config/initializers/servus.rb
+Servus.configure do |config|
+  # Default: true
+  config.include_default_guards = false
+end
+```
+
+### Guard Auto-Loading
+
+In Rails, custom guards in `app/guards/` are automatically loaded. The Railtie eager-loads all `*_guard.rb` files from `config.guards_dir`:
+
+```
+app/guards/
+├── sufficient_balance_guard.rb
+├── valid_amount_guard.rb
+└── authorized_guard.rb
+```
+
+Guards define methods on `Servus::Guards` when inherited from `Servus::Guard`. The `Guard` suffix is stripped from the method name:
+
+```ruby
+# app/guards/sufficient_balance_guard.rb
+class SufficientBalanceGuard < Servus::Guard
+  http_status 422
+  error_code 'insufficient_balance'
+
+  message 'Insufficient balance: need %<required>s, have %<available>s' do
+    { required: amount, available: account.balance }
+  end
+
+  def test(account:, amount:)
+    account.balance >= amount
+  end
+end
+
+# Usage in services:
+# enforce_sufficient_balance!(account: account, amount: 100)  # throws on failure
+# check_sufficient_balance?(account: account, amount: 100)    # returns boolean
+```
 
 ## Event Bus Configuration
 

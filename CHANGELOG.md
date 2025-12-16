@@ -1,4 +1,42 @@
-## [Unreleased]
+## [0.2.0] - 2025-12-16
+
+### Added
+
+- **Guards System**: Reusable validation rules with rich error responses
+  - `Servus::Guard` base class for creating custom guards
+  - `Servus::Guards` module included in services with `enforce_*!` and `check_*?` methods
+  - Built-in guards:
+    - `PresenceGuard` - validates values are present (not nil or empty)
+    - `TruthyGuard` - validates object attributes are truthy
+    - `FalseyGuard` - validates object attributes are falsey
+    - `StateGuard` - validates object attributes match expected value(s)
+  - Guards auto-define methods when classes inherit from `Servus::Guard`
+  - Guard DSL: `http_status`, `error_code`, `message` with interpolation support
+  - Multiple message template formats: String, I18n Symbol, inline Hash, Proc
+  - Rails auto-loading from `app/guards/*_guard.rb`
+  - Configuration options: `guards_dir`, `include_default_guards`
+
+- **GuardError**: New error class for guard validation failures
+  - Custom `code` and `http_status` per guard
+  - Services catch `:guard_failure` and wrap in failure response automatically
+
+### Changed
+
+- **Error API Refactored**: Cleaner separation of HTTP status and error body
+  - All errors now have `http_status` method returning Rails status symbol
+  - `api_error` returns `{ code:, message: }` for response body only
+  - Follows community conventions (Stripe, JSON:API) where HTTP status is in header
+
+- **Controller Helpers Refactored**:
+  - Renamed `render_service_object_error` to `render_service_error`
+  - Now takes error object directly instead of `api_error` hash
+  - Response format: `{ error: { code:, message: } }` with status from `error.http_status`
+
+### Breaking Changes
+
+- `render_service_object_error` renamed to `render_service_error`
+- `render_service_error` now accepts error object, not hash: `render_service_error(result.error)` instead of `render_service_error(result.error.api_error)`
+- Error response JSON structure changed from `{ code:, message: }` to `{ error: { code:, message: } }`
 
 ## [0.1.6] - 2025-12-06
 

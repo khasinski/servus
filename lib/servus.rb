@@ -24,12 +24,17 @@ require_relative 'servus/support/response'
 require_relative 'servus/support/validator'
 require_relative 'servus/support/errors'
 require_relative 'servus/support/rescuer'
+require_relative 'servus/support/message_resolver'
 
 # Events
 require_relative 'servus/events/errors'
 require_relative 'servus/events/bus'
 require_relative 'servus/events/emitter'
 require_relative 'servus/event_handler'
+
+# Guards (guards.rb loads defaults based on config)
+require_relative 'servus/guard'
+require_relative 'servus/guards'
 
 # Core
 require_relative 'servus/version'

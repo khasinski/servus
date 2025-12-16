@@ -1,0 +1,16 @@
+Calling GreetUserService with args: {name: "bob"}
+GreetUserService succeeded in 0.0s
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {name: []}
+Calling GreetUserService with args: {greeting: "Hello"}
+GreetUserService succeeded in 0.0s
+Calling GreetUserService with args: {greeting: "Hello$"}
+Calling GreetUserService with args: {greeting: "Hello$"}
+Calling GreetUserService with args: {greeting: "Hello$"}
+GreetUserService succeeded in 0.0s
+Calling GreetUserService with args: {greeting: "Hola"}
+GreetUserService succeeded in 0.0s

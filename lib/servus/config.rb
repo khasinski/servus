@@ -44,14 +44,29 @@ module Servus
     # @return [Boolean] true to validate, false to skip validation
     attr_accessor :strict_event_validation
 
+    # The directory where guard classes are located.
+    #
+    # Defaults to `Rails.root/app/guards` in Rails applications.
+    #
+    # @return [String] the guards directory path
+    attr_accessor :guards_dir
+
+    # Whether to include the default built-in guards (EnsurePresent, EnsurePositive).
+    #
+    # @return [Boolean] true to include default guards, false to exclude them
+    attr_accessor :include_default_guards
+
     # Initializes a new configuration with default values.
     #
     # @api private
     def initialize
-      @events_dir = 'app/events'
-      @schemas_dir = 'app/schemas'
+      @guards_dir   = 'app/guards'
+      @events_dir   = 'app/events'
+      @schemas_dir  = 'app/schemas'
       @services_dir = 'app/services'
+
       @strict_event_validation = true
+      @include_default_guards  = true
     end
 
     # Returns the full path to a service's schema file.

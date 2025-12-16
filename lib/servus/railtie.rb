@@ -19,14 +19,22 @@ module Servus
       end
     end
 
-    # Load event handlers and clear on reload
+    # Load guards and event handlers, clear caches on reload
     config.to_prepare do
+      # Load custom guards from guards_dir
+      guards_path = Rails.root.join(Servus.config.guards_dir)
+      if Dir.exist?(guards_path)
+        Dir[File.join(guards_path, '**/*_guard.rb')].each do |file|
+          require_dependency file
+        end
+      end
+
       Servus::Events::Bus.clear if Rails.env.development?
 
       # Eager load all event handlers
       events_path = Rails.root.join(Servus.config.events_dir)
-      Dir[File.join(events_path, '**/*_handler.rb')].each do |handler_file|
-        require_dependency handler_file
+      Dir[File.join(events_path, '**/*_handler.rb')].each do |file|
+        require_dependency file
       end
     end
 
