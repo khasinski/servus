@@ -83,7 +83,7 @@ app/guards/
 └── ensure_authorized_guard.rb
 ```
 
-Guards define methods on `Servus::Guards` when inherited from `Servus::Guard`:
+Guards define methods on `Servus::Guards` when inherited from `Servus::Guard`. The `Guard` suffix is stripped from method name:
 
 ```ruby
 # app/guards/ensure_sufficient_balance_guard.rb

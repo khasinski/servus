@@ -207,15 +207,16 @@ error.http_status # 422
 
 ## Naming Convention
 
-Guard class names are converted to method names:
+Guard class names are converted to method names. Both `Ensure` prefix and `Guard` suffix are stripped:
 
 | Class Name | Bang Method | Predicate Method |
 |------------|-------------|------------------|
 | `EnsureSufficientBalanceGuard` | `ensure_sufficient_balance!` | `ensure_sufficient_balance?` |
 | `EnsureValidAmountGuard` | `ensure_valid_amount!` | `ensure_valid_amount?` |
 | `EnsureAuthorizedGuard` | `ensure_authorized!` | `ensure_authorized?` |
+| `SufficientBalance` | `ensure_sufficient_balance!` | `ensure_sufficient_balance?` |
 
-The `Ensure` prefix is normalized to avoid `ensure_ensure_...` patterns.
+The `Ensure` prefix and `Guard` suffix are normalized to keep method names clean.
 
 ## Rails Auto-Loading
 

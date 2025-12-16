@@ -4,31 +4,31 @@ module Servus
   module Support
     # Contains all error classes used by Servus services.
     #
-    # All error classes inherit from {ServiceError} and provide both a human-readable
-    # message and an API-friendly error response via {ServiceError#api_error}.
+    # All error classes inherit from {ServiceError} and provide:
+    # - {ServiceError#http_status} for the HTTP response status
+    # - {ServiceError#api_error} for the JSON response body
     #
     # @see ServiceError
     module Errors
       # Base error class for all Servus service errors.
       #
-      # This class provides the foundation for all service-related errors, including:
-      # - Default error messages via DEFAULT_MESSAGE constant
-      # - API-friendly error responses via {#api_error}
-      # - Automatic message fallback to default if none provided
+      # Subclasses define their HTTP status via {#http_status} and their
+      # API response format via {#api_error}.
       #
       # @example Creating a custom error type
-      #   class MyCustomError < Servus::Support::Errors::ServiceError
-      #     DEFAULT_MESSAGE = 'Something went wrong'
+      #   class InsufficientFundsError < Servus::Support::Errors::ServiceError
+      #     DEFAULT_MESSAGE = 'Insufficient funds'
+      #
+      #     def http_status = :unprocessable_entity
       #
       #     def api_error
-      #       { code: :custom_error, message: message }
+      #       { code: 'insufficient_funds', message: message }
       #     end
       #   end
       #
       # @example Using with failure method
       #   def call
-      #     return failure("User not found", type: Servus::Support::Errors::NotFoundError)
-      #     # ...
+      #     return failure("User not found", type: NotFoundError)
       #   end
       class ServiceError < StandardError
         attr_reader :message
@@ -38,225 +38,117 @@ module Servus
         # Creates a new service error instance.
         #
         # @param message [String, nil] custom error message (uses DEFAULT_MESSAGE if nil)
-        # @return [ServiceError] the error instance
-        #
-        # @example With custom message
-        #   error = ServiceError.new("Something went wrong")
-        #   error.message # => "Something went wrong"
-        #
-        # @example With default message
-        #   error = ServiceError.new
-        #   error.message # => "An error occurred"
         def initialize(message = nil)
           @message = message || self.class::DEFAULT_MESSAGE
-          super("#{self.class}: #{message}")
+          super("#{self.class}: #{@message}")
         end
+
+        # Returns the HTTP status code for this error.
+        #
+        # @return [Symbol] Rails-compatible status symbol
+        def http_status = :bad_request
 
         # Returns an API-friendly error response.
         #
-        # This method formats the error for API responses, providing both a
-        # symbolic code and the error message. Override in subclasses to customize
-        # the error code for specific HTTP status codes.
-        #
         # @return [Hash] hash with :code and :message keys
-        #
-        # @example
-        #   error = ServiceError.new("Failed to process")
-        #   error.api_error # => { code: :bad_request, message: "Failed to process" }
-        def api_error
-          { code: :bad_request, message: message }
-        end
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 400 Bad Request error.
-      #
-      # Use this error when the client sends malformed or invalid request data.
-      #
-      # @example
-      #   def call
-      #     return failure("Invalid JSON format", type: BadRequestError)
-      #   end
+      # 400 Bad Request - malformed or invalid request data.
       class BadRequestError < ServiceError
         DEFAULT_MESSAGE = 'Bad request'
 
-        # 400 error response
-        # @return [Hash] The error response
-        def api_error
-          { code: :bad_request, message: message }
-        end
+        def http_status = :bad_request
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 401 Unauthorized error for authentication failures.
-      #
-      # Use this error when authentication credentials are missing, invalid, or expired.
-      #
-      # @example
-      #   def call
-      #     return failure("Invalid API key", type: AuthenticationError) unless valid_api_key?
-      #   end
+      # 401 Unauthorized - authentication credentials missing or invalid.
       class AuthenticationError < ServiceError
         DEFAULT_MESSAGE = 'Authentication failed'
 
-        # @return [Hash] API error response with :unauthorized code
-        def api_error
-          { code: :unauthorized, message: message }
-        end
+        def http_status = :unauthorized
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 401 Unauthorized error (alias for AuthenticationError).
-      #
-      # Use this error for authorization failures when credentials are valid but
-      # lack sufficient permissions.
-      #
-      # @example
-      #   def call
-      #     return failure("Access denied", type: UnauthorizedError) unless user.admin?
-      #   end
+      # 401 Unauthorized (alias for AuthenticationError).
       class UnauthorizedError < AuthenticationError
         DEFAULT_MESSAGE = 'Unauthorized'
       end
 
-      # Represents a 403 Forbidden error.
-      #
-      # Use this error when the user is authenticated but not authorized to perform
-      # the requested action.
-      #
-      # @example
-      #   def call
-      #     return failure("Insufficient permissions", type: ForbiddenError) unless can_access?
-      #   end
+      # 403 Forbidden - authenticated but not authorized.
       class ForbiddenError < ServiceError
         DEFAULT_MESSAGE = 'Forbidden'
 
-        # 403 error response
-        # @return [Hash] The error response
-        def api_error
-          { code: :forbidden, message: message }
-        end
+        def http_status = :forbidden
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 404 Not Found error.
-      #
-      # Use this error when a requested resource cannot be found.
-      #
-      # @example
-      #   def call
-      #     user = User.find_by(id: @user_id)
-      #     return failure("User not found", type: NotFoundError) unless user
-      #   end
+      # 404 Not Found - requested resource does not exist.
       class NotFoundError < ServiceError
         DEFAULT_MESSAGE = 'Not found'
 
-        # @return [Hash] API error response with :not_found code
-        def api_error
-          { code: :not_found, message: message }
-        end
+        def http_status = :not_found
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 422 Unprocessable Entity error.
-      #
-      # Use this error when the request is well-formed but contains semantic errors
-      # that prevent processing (e.g., business logic violations).
-      #
-      # @example
-      #   def call
-      #     return failure("Order already shipped", type: UnprocessableEntityError) if @order.shipped?
-      #   end
+      # 422 Unprocessable Entity - semantic errors in request.
       class UnprocessableEntityError < ServiceError
         DEFAULT_MESSAGE = 'Unprocessable entity'
 
-        # @return [Hash] API error response with :unprocessable_entity code
-        def api_error
-          { code: :unprocessable_entity, message: message }
-        end
+        def http_status = :unprocessable_entity
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents validation failures (inherits 422 status).
-      #
-      # Automatically raised by the framework when schema validation fails.
-      # Can also be used for custom validation errors.
-      #
-      # @example
-      #   def call
-      #     return failure("Email format invalid", type: ValidationError) unless valid_email?
-      #   end
+      # 422 Validation Error - schema or business validation failed.
       class ValidationError < UnprocessableEntityError
         DEFAULT_MESSAGE = 'Validation failed'
+
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents guard validation failures with rich metadata.
+      # Guard validation failure with custom code.
       #
-      # Guards throw this error when validation fails. The error carries
-      # metadata from the guard class (code, http_status) for API responses.
+      # Guards define their own error code and HTTP status via the DSL.
       #
-      # @example Guard throwing a GuardError
-      #   throw(:guard_failure, GuardError.new(
-      #     "amount must be positive",
-      #     code: "invalid_amount",
-      #     http_status: 422
-      #   ))
-      #
-      # @see Servus::Guard
+      # @example
+      #   GuardError.new("Amount must be positive", code: 'invalid_amount', http_status: 422)
       class GuardError < ServiceError
         DEFAULT_MESSAGE = 'Guard validation failed'
 
-        attr_reader :code, :http_status
+        # @return [String] application-specific error code
+        attr_reader :code
+
+        # @return [Symbol, Integer] HTTP status code
+        attr_reader :http_status
 
         # Creates a new guard error with metadata.
         #
         # @param message [String, nil] error message
-        # @param code [String] error code for API responses (default: 'validation_failed')
-        # @param http_status [Integer] HTTP status code (default: 422)
-        def initialize(message = nil, code: 'validation_failed', http_status: 422)
+        # @param code [String] error code for API responses (default: 'guard_failed')
+        # @param http_status [Symbol, Integer] HTTP status (default: :unprocessable_entity)
+        def initialize(message = nil, code: 'guard_failed', http_status: :unprocessable_entity)
           super(message)
-          @code = code
+          @code        = code
           @http_status = http_status
         end
 
-        # Returns an API-friendly error response with guard metadata.
-        #
-        # @return [Hash] hash with :code, :message, and :http_status keys
-        def api_error
-          { code: code, message: message, http_status: http_status }
-        end
+        def api_error = { code: code, message: message }
       end
 
-      # Represents a 500 Internal Server Error.
-      #
-      # Use this error for unexpected server-side failures.
-      #
-      # @example
-      #   def call
-      #     return failure("Database connection lost", type: InternalServerError) if db_down?
-      #   end
+      # 500 Internal Server Error - unexpected server-side failure.
       class InternalServerError < ServiceError
         DEFAULT_MESSAGE = 'Internal server error'
 
-        # @return [Hash] API error response with :internal_server_error code
-        def api_error
-          { code: :internal_server_error, message: message }
-        end
+        def http_status = :internal_server_error
+        def api_error = { code: http_status, message: message }
       end
 
-      # Represents a 503 Service Unavailable error.
-      #
-      # Use this error when a service dependency is temporarily unavailable.
-      #
-      # @example Using with rescue_from
-      #   class MyService < Servus::Base
-      #     rescue_from Net::HTTPError, use: ServiceUnavailableError
-      #
-      #     def call
-      #       make_external_api_call
-      #     end
-      #   end
+      # 503 Service Unavailable - dependency temporarily unavailable.
       class ServiceUnavailableError < ServiceError
         DEFAULT_MESSAGE = 'Service unavailable'
 
-        # @return [Hash] API error response with :service_unavailable code
-        def api_error
-          { code: :service_unavailable, message: message }
-        end
+        def http_status = :service_unavailable
+        def api_error = { code: http_status, message: message }
       end
     end
   end

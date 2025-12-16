@@ -20,6 +20,10 @@ RSpec.describe Servus::Helpers::ControllerHelpers do
   end
 
   error_class = Class.new(StandardError) do
+    def http_status
+      :bad_request
+    end
+
     def api_error
       { code: :bad_request, message: 'Bad Request' }
     end
@@ -62,18 +66,18 @@ RSpec.describe Servus::Helpers::ControllerHelpers do
       expect(controller.instance_variable_get(:@result).data).to be_nil
 
       expect(controller.instance_variable_get(:@rendered)).to eq(
-        json: { code: :bad_request, message: 'Bad Request' },
+        json: { error: { code: :bad_request, message: 'Bad Request' } },
         status: :bad_request
       )
     end
   end
 
-  describe '#render_service_object_error' do
-    it 'renders error' do
-      controller.render_service_object_error(error_class.new.api_error)
+  describe '#render_service_error' do
+    it 'renders error with http_status and api_error body' do
+      controller.render_service_error(error_class.new)
 
       expect(controller.instance_variable_get(:@rendered)).to eq(
-        json: { code: :bad_request, message: 'Bad Request' },
+        json: { error: { code: :bad_request, message: 'Bad Request' } },
         status: :bad_request
       )
     end

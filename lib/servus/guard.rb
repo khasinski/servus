@@ -179,15 +179,22 @@ module Servus
 
       # Converts a guard class name to a method name.
       #
+      # Removes "Ensure" prefix and "Guard" suffix, converts CamelCase to snake_case,
+      # and prefixes with "ensure_".
+      #
+      # @example
+      #   derive_method_name(EnsurePositive) # => "ensure_positive"
+      #   derive_method_name(EnsureSufficientBalanceGuard) # => "ensure_sufficient_balance"
+      #
       # @param guard_class [Class] the guard class
       # @return [String] the method name (without ! or ?)
       # @api private
       def derive_method_name(guard_class)
         class_name = guard_class.name.split('::').last
-        "ensure_#{class_name.gsub(/^Ensure/, '')
-          .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-          .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-          .downcase}"
+        class_name.gsub(/Guard$/, '')
+                  .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+                  .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+                  .downcase
       end
     end
 
