@@ -10,8 +10,8 @@ module Servus
   # @example Using guards in a service
   #   class TransferService < Servus::Base
   #     def call
-  #       ensure_present!(user: user, account: account)
-  #       ensure_positive!(amount: amount)
+  #       enforce_presence!(user: user, account: account)
+  #       enforce_positive!(amount: amount)
   #       # ... perform transfer ...
   #       success(result)
   #     end
@@ -21,8 +21,8 @@ module Servus
   module Guards
     # Guard methods are defined dynamically via Servus::Guard.inherited
     # when guard classes are loaded. Each guard class defines:
-    #   - ensure_<name>!  (throws :guard_failure on failure)
-    #   - ensure_<name>?  (returns boolean)
+    #   - enforce_<name>!  (throws :guard_failure on failure)
+    #   - check_<name>?  (returns boolean)
 
     class << self
       # Loads default guards if configured.
@@ -35,8 +35,8 @@ module Servus
       def load_defaults
         return unless Servus.config.include_default_guards
 
-        require_relative 'guards/ensure_present'
-        require_relative 'guards/ensure_positive'
+        require_relative 'guards/presence'
+        require_relative 'guards/positive'
       end
     end
   end

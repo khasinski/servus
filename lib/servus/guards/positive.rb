@@ -7,14 +7,19 @@ module Servus
     # @example Basic usage
     #   class TransferService < Servus::Base
     #     def call
-    #       ensure_positive!(amount: amount)
+    #       enforce_positive!(amount: amount)
     #       # ...
     #     end
     #   end
     #
     # @example With custom parameter name
-    #   ensure_positive!(balance: account.balance)
-    class EnsurePositive < Servus::Guard
+    #   enforce_positive!(balance: account.balance)
+    #
+    # @example Conditional check
+    #   if check_positive?(amount: amount)
+    #     # amount is positive
+    #   end
+    class PositiveGuard < Servus::Guard
       http_status 422
       error_code 'must_be_positive'
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Servus::Guards::EnsurePositive do
+RSpec.describe Servus::Guards::PositiveGuard do
   describe '#test' do
     context 'with positive values' do
       it 'returns true for positive integer' do
@@ -115,12 +115,12 @@ RSpec.describe Servus::Guards::EnsurePositive do
   end
 
   describe 'method definition' do
-    it 'defines ensure_positive! on Servus::Guards' do
-      expect(Servus::Guards.method_defined?(:ensure_positive!)).to be true
+    it 'defines enforce_positive! on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:enforce_positive!)).to be true
     end
 
-    it 'defines ensure_positive? on Servus::Guards' do
-      expect(Servus::Guards.method_defined?(:ensure_positive?)).to be true
+    it 'defines check_positive? on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:check_positive?)).to be true
     end
   end
 end

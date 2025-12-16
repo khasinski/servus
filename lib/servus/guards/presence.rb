@@ -10,17 +10,22 @@ module Servus
     # @example Basic usage
     #   class MyService < Servus::Base
     #     def call
-    #       ensure_present!(user: user, account: account)
+    #       enforce_presence!(user: user, account: account)
     #       # ...
     #     end
     #   end
     #
     # @example Single value
-    #   ensure_present!(email: email)
+    #   enforce_presence!(email: email)
     #
     # @example Multiple values
-    #   ensure_present!(user: user, account: account, device: device)
-    class EnsurePresent < Servus::Guard
+    #   enforce_presence!(user: user, account: account, device: device)
+    #
+    # @example Conditional check
+    #   if check_presence?(user: user)
+    #     # user is present
+    #   end
+    class PresenceGuard < Servus::Guard
       http_status 422
       error_code 'must_be_present'
 

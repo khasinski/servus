@@ -74,24 +74,24 @@ RSpec.describe Servus::Guard do
       guard_class = Class.new(described_class) do
         def test(**) = true
       end
-      stub_const('EnsureSufficientBalance', guard_class)
+      stub_const('SufficientBalance', guard_class)
 
       # Manually trigger method definition (inherited hook fired before stub_const)
       described_class.send(:register_guard_methods, guard_class)
 
-      expect(Servus::Guards.method_defined?(:ensure_sufficient_balance!)).to be true
+      expect(Servus::Guards.method_defined?(:enforce_sufficient_balance!)).to be true
     end
 
     it 'defines predicate method on Servus::Guards when class has a name' do
       guard_class = Class.new(described_class) do
         def test(**) = true
       end
-      stub_const('EnsureValidAmount', guard_class)
+      stub_const('ValidAmount', guard_class)
 
       # Manually trigger method definition
       described_class.send(:register_guard_methods, guard_class)
 
-      expect(Servus::Guards.method_defined?(:ensure_valid_amount?)).to be true
+      expect(Servus::Guards.method_defined?(:check_valid_amount?)).to be true
     end
 
     it 'skips method definition for anonymous classes' do
