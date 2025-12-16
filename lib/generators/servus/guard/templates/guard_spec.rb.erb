@@ -1,0 +1,65 @@
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe <%= guard_class_name %> do
+<%- unless options[:no_docs] -%>
+  # TODO: Define a test class or use a real model
+  # let(:test_class) do
+  #   Struct.new(:attribute, keyword_init: true) do
+  #     def self.name
+  #       'TestModel'
+  #     end
+  #   end
+  # end
+
+<%- end -%>
+  describe '#test' do
+<%- unless options[:no_docs] -%>
+    # TODO: Add test cases for your guard logic
+    #
+    # Example:
+    #   context 'when condition is met' do
+    #     it 'returns true' do
+    #       object = test_class.new(attribute: valid_value)
+    #       guard = described_class.new(object: object)
+    #       expect(guard.test(object: object)).to be true
+    #     end
+    #   end
+    #
+    #   context 'when condition is not met' do
+    #     it 'returns false' do
+    #       object = test_class.new(attribute: invalid_value)
+    #       guard = described_class.new(object: object)
+    #       expect(guard.test(object: object)).to be false
+    #     end
+    #   end
+
+<%- end -%>
+    it 'returns true when validation passes' do
+      guard = described_class.new
+      expect(guard.test).to be true
+    end
+  end
+
+  describe '#error' do
+    it 'returns a GuardError with correct metadata' do
+      guard = described_class.new
+      error = guard.error
+
+      expect(error).to be_a(Servus::Support::Errors::GuardError)
+      expect(error.code).to eq('<%= file_name %>')
+      expect(error.http_status).to eq(422)
+    end
+  end
+
+  describe 'method registration' do
+    it 'defines <%= enforce_method_name %> on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:<%= enforce_method_name %>)).to be true
+    end
+
+    it 'defines <%= check_method_name %> on Servus::Guards' do
+      expect(Servus::Guards.method_defined?(:<%= check_method_name %>)).to be true
+    end
+  end
+end

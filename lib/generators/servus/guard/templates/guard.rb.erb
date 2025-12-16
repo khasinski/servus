@@ -1,0 +1,69 @@
+# frozen_string_literal: true
+
+<%- unless options[:no_docs] -%>
+# Guard that validates <%= file_name.humanize.downcase %> conditions.
+#
+# Guards are reusable validation rules that halt service execution when
+# conditions aren't met. They provide declarative precondition checking
+# with rich error responses.
+#
+# @example Basic usage in a service
+#   class MyService < Servus::Base
+#     def call
+#       <%= enforce_method_name %>(arg: value)
+#       # ... business logic ...
+#       success(result)
+#     end
+#   end
+#
+# @example Conditional check (returns boolean, doesn't halt)
+#   if <%= check_method_name %>(arg: value)
+#     # condition is met
+#   end
+#
+# @see Servus::Guard
+# @see Servus::Guards
+<%- end -%>
+class <%= guard_class_name %> < Servus::Guard
+  http_status 422
+  error_code '<%= file_name %>'
+
+  message '%<class_name>s <%= file_name.humanize.downcase %> validation failed' do
+    message_data
+  end
+
+  # Tests whether the <%= file_name.humanize.downcase %> condition is met.
+  #
+  # @param kwargs [Hash] the arguments to validate
+  # @return [Boolean] true if validation passes
+  def test(**kwargs)
+    # TODO: Implement validation logic
+    # Return true if the condition is met, false otherwise
+    #
+    # Example:
+    #   def test(account:, amount:)
+    #     account.balance >= amount
+    #   end
+    true
+  end
+
+  private
+
+  # Builds the interpolation data for the error message.
+  #
+  # @return [Hash] message interpolation data
+  def message_data
+    # TODO: Return hash of values for message interpolation
+    # Access guard arguments via kwargs[:argument_name]
+    #
+    # Example:
+    #   {
+    #     class_name: kwargs[:account].class.name,
+    #     balance: kwargs[:account].balance,
+    #     required: kwargs[:amount]
+    #   }
+    {
+      class_name: 'Object'
+    }
+  end
+end

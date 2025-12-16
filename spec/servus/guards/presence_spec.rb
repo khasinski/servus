@@ -99,23 +99,6 @@ RSpec.describe Servus::Guards::PresenceGuard do
     end
   end
 
-  describe '#message' do
-    it 'includes all key names in the message' do
-      guard = described_class.new(user: nil, account: nil)
-      expect(guard.message).to eq('user, account must be present')
-    end
-
-    it 'handles single key' do
-      guard = described_class.new(email: nil)
-      expect(guard.message).to eq('email must be present')
-    end
-
-    it 'handles multiple keys' do
-      guard = described_class.new(user: nil, account: nil, device: nil)
-      expect(guard.message).to eq('user, account, device must be present')
-    end
-  end
-
   describe '#error' do
     it 'returns GuardError with correct metadata' do
       guard = described_class.new(user: nil)
@@ -123,8 +106,27 @@ RSpec.describe Servus::Guards::PresenceGuard do
 
       expect(error).to be_a(Servus::Support::Errors::GuardError)
       expect(error.code).to eq('must_be_present')
-      expect(error.message).to eq('user must be present')
       expect(error.http_status).to eq(422)
+    end
+
+    it 'shows first failing key with nil value' do
+      guard = described_class.new(user: nil, account: nil)
+      expect(guard.error.message).to eq('user must be present (got nil)')
+    end
+
+    it 'shows first failing key with empty string value' do
+      guard = described_class.new(email: '')
+      expect(guard.error.message).to eq('email must be present (got "")')
+    end
+
+    it 'shows first failing key with empty array value' do
+      guard = described_class.new(items: [])
+      expect(guard.error.message).to eq('items must be present (got [])')
+    end
+
+    it 'shows first failing key when multiple fail' do
+      guard = described_class.new(user: 'present', account: nil, device: '')
+      expect(guard.error.message).to eq('account must be present (got nil)')
     end
   end
 

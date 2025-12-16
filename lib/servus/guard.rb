@@ -234,16 +234,17 @@ module Servus
 
     # Returns the formatted error message.
     #
-    # Resolves the template (handling String, Symbol, Proc, Hash types),
-    # evaluates the message data block, and interpolates the data into the template.
+    # Uses {Servus::Support::MessageResolver} to resolve the template and
+    # interpolate data from the message block.
     #
     # @return [String] the formatted error message
+    # @see Servus::Support::MessageResolver
     def message
-      template = resolve_template
-      data = instance_exec(&self.class.message_block) if self.class.message_block
-      data ||= {}
-
-      template % data
+      Servus::Support::MessageResolver.new(
+        template: self.class.message_template,
+        data: self.class.message_block ? instance_exec(&self.class.message_block) : {},
+        i18n_scope: 'guards'
+      ).resolve(context: self)
     end
 
     # Returns a GuardError instance configured with this guard's metadata.
@@ -283,40 +284,6 @@ module Servus
     # @api private
     def respond_to_missing?(method_name, include_private = false)
       kwargs.key?(method_name) || super
-    end
-
-    private
-
-    # Resolves the message template to a string.
-    #
-    # Handles Symbol (I18n), Proc (dynamic), Hash (inline translations),
-    # and String (static) template types.
-    #
-    # @return [String] the resolved template string
-    # @api private
-    def resolve_template
-      template = self.class.message_template
-
-      case template
-      when Symbol
-        # I18n lookup with fallback
-        i18n_key = template.to_s.include?('.') ? template : "guards.#{template}"
-        if defined?(I18n)
-          I18n.t(i18n_key, default: template.to_s.tr('_', ' ').capitalize)
-        else
-          template.to_s.tr('_', ' ').capitalize
-        end
-      when Proc
-        # Dynamic template (evaluated at runtime)
-        instance_exec(&template)
-      when Hash
-        # Inline translations
-        locale = defined?(I18n) ? I18n.locale : :en
-        template[locale] || template[:en] || template.values.first
-      else
-        # Static string
-        template.to_s
-      end
     end
   end
 end

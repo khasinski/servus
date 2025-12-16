@@ -24,6 +24,7 @@ require_relative 'servus/support/response'
 require_relative 'servus/support/validator'
 require_relative 'servus/support/errors'
 require_relative 'servus/support/rescuer'
+require_relative 'servus/support/message_resolver'
 
 # Events
 require_relative 'servus/events/errors'

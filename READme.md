@@ -350,16 +350,105 @@ end
 
 The block receives the exception and has access to `success` and `failure` methods for creating the response.
 
+## **Guards**
+
+Guards are reusable validation rules that halt service execution when conditions aren't met. They provide declarative precondition checking with rich error responses.
+
+### Built-in Guards
+
+```ruby
+def call
+  # Validate values are present (not nil or empty)
+  enforce_presence!(user: user, account: account)
+
+  # Validate object attributes are truthy
+  enforce_truthy!(on: user, check: :active)
+  enforce_truthy!(on: user, check: [:active, :verified])  # all must be truthy
+
+  # Validate object attributes are falsey
+  enforce_falsey!(on: user, check: :banned)
+  enforce_falsey!(on: post, check: [:deleted, :hidden])  # all must be falsey
+
+  # Validate attribute matches expected value(s)
+  enforce_state!(on: order, check: :status, is: :pending)
+  enforce_state!(on: account, check: :status, is: [:active, :trial])  # any match passes
+
+  # ... business logic ...
+  success(result)
+end
+```
+
+### Predicate Methods
+
+Each guard has a predicate version for conditional logic:
+
+```ruby
+if check_truthy?(on: user, check: :premium)
+  apply_premium_discount
+else
+  apply_standard_rate
+end
+```
+
+### Custom Guards
+
+Create custom guards in `app/guards/`:
+
+```bash
+$ rails g servus:guard open_account
+=>    create  app/guards/open_account_guard.rb
+      create  spec/guards/open_account_guard_spec.rb
+```
+
+```ruby
+# app/guards/open_account_guard.rb
+class OpenAccountGuard < Servus::Guard
+  http_status 422
+  error_code 'open_account_required'
+
+  message 'Invalid account: %<name> does not have an open account' do
+    message_data
+  end
+
+  def test(user:)
+    user.account.present? && user.account.status_open?
+  end
+
+  private
+
+  def message_data
+    {
+      name: kwargs[:user].name
+    }
+  end
+end
+
+# Usage in services:
+# enforce_open_account!(user: user_record)  # throws on failure
+# check_open_account?(user: user_record)    # returns boolean
+```
+
+### Guard Error Responses
+
+When a guard fails, the service returns a failure response with structured error data:
+
+```ruby
+result = TransferService.call(from_account: account, amount: 1000)
+result.success?          # => false
+result.error.message     # => "Invalid account: Bob Jones does not have an open account"
+result.error.code        # => "open_account_required"
+result.error.http_status # => 422
+```
+
 ## Controller Helpers
 
-Service objects can be called from controllers using the `run_service` and `render_service_object_error` helpers.
+Service objects can be called from controllers using the `run_service` and `render_service_error` helpers.
 
 ### run_service
 
-`run_service` calls the service object with the provided parameters and set's an instance variable `@result` to the
-result of the service object if the result is successful. If the result is not successful, it will pass the result
-to error to the `render_service_object_error` helper. This allows for easy error handling in the controller for
-repetetive usecases.
+`run_service` calls the service object with the provided parameters and sets an instance variable `@result` to the
+result of the service object. If the result is not successful, it automatically calls `render_service_error` with
+the error. This provides consistent error handling across controllers.
 
 ```ruby
 class SomeController < AppController
@@ -367,7 +456,7 @@ class SomeController < AppController
   def controller_action
     result = Services::SomeServiceObject::Service.call(my_params)
     return if result.success?
-    render_service_object_error(result.error.api_error)
+    render_service_error(result.error)
   end
 
   # After
@@ -377,26 +466,42 @@ class SomeController < AppController
 end
 ```
 
-### render_service_object_error
+### render_service_error
 
-`render_service_object_error` renders the error of a service object. It expects a hash with a `message` key and a `code` key from
-the api_error method of the service error. This is all setup by default for a JSON API response, thought the method can be
-overridden if needed to handle different usecases.
+`render_service_error` renders a service error as JSON. It takes an error object (not a hash) and uses
+`error.http_status` for the response status and `error.api_error` for the response body.
 
 ```ruby
-# Behind the scenes, render_service_object_error calls the following:
+# Behind the scenes, render_service_error calls the following:
 #
-#  error = result.error.api_error
-#  => { message: "Error message", code: 400 }
+#  render json: { error: error.api_error }, status: error.http_status
 #
-#  render json: { message: error[:message], code: error[:code] }, status: error[:code]
+# Which produces a response like:
+#  { "error": { "code": "not_found", "message": "User not found" } }
+#  with HTTP status 404
 
 class SomeController < AppController
   def controller_action
     result = Services::SomeServiceObject::Service.call(my_params)
     return if result.success?
 
-    render_service_object_error(result.error.api_error)
+    render_service_error(result.error)
+  end
+end
+```
+
+Override `render_service_error` in your controller to customize error response format:
+
+```ruby
+class ApplicationController < ActionController::Base
+  def render_service_error(error)
+    render json: {
+      error: {
+        type: error.api_error[:code],
+        details: error.message,
+        timestamp: Time.current
+      }
+    }, status: error.http_status
   end
 end
 ```

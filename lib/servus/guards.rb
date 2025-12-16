@@ -11,7 +11,7 @@ module Servus
   #   class TransferService < Servus::Base
   #     def call
   #       enforce_presence!(user: user, account: account)
-  #       enforce_positive!(amount: amount)
+  #       enforce_state!(on: account, check: :status, is: :active)
   #       # ... perform transfer ...
   #       success(result)
   #     end
@@ -35,8 +35,10 @@ module Servus
       def load_defaults
         return unless Servus.config.include_default_guards
 
-        require_relative 'guards/presence'
-        require_relative 'guards/positive'
+        require_relative 'guards/presence_guard'
+        require_relative 'guards/truthy_guard'
+        require_relative 'guards/falsey_guard'
+        require_relative 'guards/state_guard'
       end
     end
   end

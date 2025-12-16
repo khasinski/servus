@@ -14,7 +14,7 @@ module Servus
     #   end
     #
     # @see #run_service
-    # @see #render_service_object_error
+    # @see #render_service_error
     module ControllerHelpers
       # Executes a service and handles success/failure automatically.
       #

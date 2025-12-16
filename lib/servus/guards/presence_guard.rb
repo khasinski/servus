@@ -29,10 +29,8 @@ module Servus
       http_status 422
       error_code 'must_be_present'
 
-      message '%<key_names>s must be present' do
-        {
-          key_names: kwargs.keys.map(&:to_s).join(', ')
-        }
+      message '%<key>s must be present (got %<value>s)' do
+        message_data
       end
 
       # Tests whether all provided values are present.
@@ -43,13 +41,39 @@ module Servus
       # @param values [Hash] keyword arguments to validate
       # @return [Boolean] true if all values are present
       def test(**values)
-        values.values.all? do |value|
-          if value.respond_to?(:empty?)
-            !value.nil? && !value.empty?
-          else
-            !value.nil?
-          end
-        end
+        values.all? { |_, value| present?(value) }
+      end
+
+      private
+
+      # Builds the interpolation data for the error message.
+      #
+      # @return [Hash] message interpolation data
+      def message_data
+        failed_key, failed_value = find_failing_entry
+
+        {
+          key: failed_key,
+          value: failed_value.inspect
+        }
+      end
+
+      # Finds the first key-value pair that fails the presence check.
+      #
+      # @return [Array<Symbol, Object>] the failing key and value
+      def find_failing_entry
+        kwargs.find { |_, value| !present?(value) }
+      end
+
+      # Checks if a value is present (not nil and not empty).
+      #
+      # @param value [Object] the value to check
+      # @return [Boolean] true if present
+      def present?(value)
+        return false if value.nil?
+        return !value.empty? if value.respond_to?(:empty?)
+
+        true
       end
     end
   end

@@ -62,7 +62,7 @@ Servus respects ActiveJob queue configuration - no Servus-specific setup needed.
 
 ### Default Guards
 
-Servus includes built-in guards (`EnsurePresent`, `EnsurePositive`) that are loaded by default. Disable them if you want to define your own:
+Servus includes built-in guards (`PresenceGuard`, `TruthyGuard`, `FalseyGuard`, `StateGuard`) that are loaded by default. Disable them if you want to define your own:
 
 ```ruby
 # config/initializers/servus.rb
@@ -78,16 +78,16 @@ In Rails, custom guards in `app/guards/` are automatically loaded. The Railtie e
 
 ```
 app/guards/
-├── ensure_sufficient_balance_guard.rb
-├── ensure_valid_amount_guard.rb
-└── ensure_authorized_guard.rb
+├── sufficient_balance_guard.rb
+├── valid_amount_guard.rb
+└── authorized_guard.rb
 ```
 
-Guards define methods on `Servus::Guards` when inherited from `Servus::Guard`. The `Guard` suffix is stripped from method name:
+Guards define methods on `Servus::Guards` when inherited from `Servus::Guard`. The `Guard` suffix is stripped from the method name:
 
 ```ruby
-# app/guards/ensure_sufficient_balance_guard.rb
-class EnsureSufficientBalanceGuard < Servus::Guard
+# app/guards/sufficient_balance_guard.rb
+class SufficientBalanceGuard < Servus::Guard
   http_status 422
   error_code 'insufficient_balance'
 
@@ -101,8 +101,8 @@ class EnsureSufficientBalanceGuard < Servus::Guard
 end
 
 # Usage in services:
-# ensure_sufficient_balance!(account: account, amount: 100)  # throws on failure
-# ensure_sufficient_balance?(account: account, amount: 100)  # returns boolean
+# enforce_sufficient_balance!(account: account, amount: 100)  # throws on failure
+# check_sufficient_balance?(account: account, amount: 100)    # returns boolean
 ```
 
 ## Event Bus Configuration
