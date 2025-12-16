@@ -92,8 +92,12 @@
   <div class="discussion">
     <p>Contains all error classes used by Servus services.</p>
 
-<p>All error classes inherit from <span class='object_link'><a href="Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span> and provide both a human-readable
-message and an API-friendly error response via <span class='object_link'><a href="Errors/ServiceError.html#api_error-instance_method" title="Servus::Support::Errors::ServiceError#api_error (method)">ServiceError#api_error</a></span>.</p>
+<p>All error classes inherit from <span class='object_link'><a href="Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span> and provide:</p>
+
+<ul>
+<li><span class='object_link'><a href="Errors/ServiceError.html#http_status-instance_method" title="Servus::Support::Errors::ServiceError#http_status (method)">ServiceError#http_status</a></span> for the HTTP response status</li>
+<li><span class='object_link'><a href="Errors/ServiceError.html#api_error-instance_method" title="Servus::Support::Errors::ServiceError#api_error (method)">ServiceError#api_error</a></span> for the JSON response body</li>
+</ul>
 
 
   </div>
@@ -114,7 +118,7 @@ message and an API-friendly error response via <span class='object_link'><a href
     
   
     
-      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Errors/AuthenticationError.html" title="Servus::Support::Errors::AuthenticationError (class)">AuthenticationError</a></span>, <span class='object_link'><a href="Errors/BadRequestError.html" title="Servus::Support::Errors::BadRequestError (class)">BadRequestError</a></span>, <span class='object_link'><a href="Errors/ForbiddenError.html" title="Servus::Support::Errors::ForbiddenError (class)">ForbiddenError</a></span>, <span class='object_link'><a href="Errors/InternalServerError.html" title="Servus::Support::Errors::InternalServerError (class)">InternalServerError</a></span>, <span class='object_link'><a href="Errors/NotFoundError.html" title="Servus::Support::Errors::NotFoundError (class)">NotFoundError</a></span>, <span class='object_link'><a href="Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span>, <span class='object_link'><a href="Errors/ServiceUnavailableError.html" title="Servus::Support::Errors::ServiceUnavailableError (class)">ServiceUnavailableError</a></span>, <span class='object_link'><a href="Errors/UnauthorizedError.html" title="Servus::Support::Errors::UnauthorizedError (class)">UnauthorizedError</a></span>, <span class='object_link'><a href="Errors/UnprocessableEntityError.html" title="Servus::Support::Errors::UnprocessableEntityError (class)">UnprocessableEntityError</a></span>, <span class='object_link'><a href="Errors/ValidationError.html" title="Servus::Support::Errors::ValidationError (class)">ValidationError</a></span>
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Errors/AuthenticationError.html" title="Servus::Support::Errors::AuthenticationError (class)">AuthenticationError</a></span>, <span class='object_link'><a href="Errors/BadRequestError.html" title="Servus::Support::Errors::BadRequestError (class)">BadRequestError</a></span>, <span class='object_link'><a href="Errors/ForbiddenError.html" title="Servus::Support::Errors::ForbiddenError (class)">ForbiddenError</a></span>, <span class='object_link'><a href="Errors/GuardError.html" title="Servus::Support::Errors::GuardError (class)">GuardError</a></span>, <span class='object_link'><a href="Errors/InternalServerError.html" title="Servus::Support::Errors::InternalServerError (class)">InternalServerError</a></span>, <span class='object_link'><a href="Errors/NotFoundError.html" title="Servus::Support::Errors::NotFoundError (class)">NotFoundError</a></span>, <span class='object_link'><a href="Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span>, <span class='object_link'><a href="Errors/ServiceUnavailableError.html" title="Servus::Support::Errors::ServiceUnavailableError (class)">ServiceUnavailableError</a></span>, <span class='object_link'><a href="Errors/UnauthorizedError.html" title="Servus::Support::Errors::UnauthorizedError (class)">UnauthorizedError</a></span>, <span class='object_link'><a href="Errors/UnprocessableEntityError.html" title="Servus::Support::Errors::UnprocessableEntityError (class)">UnprocessableEntityError</a></span>, <span class='object_link'><a href="Errors/ValidationError.html" title="Servus::Support::Errors::ValidationError (class)">ValidationError</a></span>
     
   
 </p>
@@ -130,7 +134,7 @@ message and an API-friendly error response via <span class='object_link'><a href
 </div>
 
       <div id="footer">
-  Generated on Sat Dec  6 11:17:46 2025 by
+  Generated on Tue Dec 16 15:45:05 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.0).
 </div>

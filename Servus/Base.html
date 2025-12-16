@@ -89,7 +89,7 @@
   
   <dl>
       <dt>Includes:</dt>
-      <dd><span class='object_link'><a href="Events/Emitter.html" title="Servus::Events::Emitter (module)">Events::Emitter</a></span>, <span class='object_link'><a href="Support/Errors.html" title="Servus::Support::Errors (module)">Support::Errors</a></span>, <span class='object_link'><a href="Support/Rescuer.html" title="Servus::Support::Rescuer (module)">Support::Rescuer</a></span></dd>
+      <dd><span class='object_link'><a href="Events/Emitter.html" title="Servus::Events::Emitter (module)">Events::Emitter</a></span>, <span class='object_link'><a href="Guards.html" title="Servus::Guards (module)">Guards</a></span>, <span class='object_link'><a href="Support/Errors.html" title="Servus::Support::Errors (module)">Support::Errors</a></span>, <span class='object_link'><a href="Support/Rescuer.html" title="Servus::Support::Rescuer (module)">Support::Rescuer</a></span></dd>
   </dl>
   
   
@@ -499,6 +499,17 @@ including automatic validation, logging, benchmarking, and error handling.</p>
   
   
   
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Guards.html" title="Servus::Guards (module)">Guards</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Guards.html#load_defaults-class_method" title="Servus::Guards.load_defaults (method)">load_defaults</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
   <h3 class="inherited">Methods included from <span class='object_link'><a href="Events/Emitter.html" title="Servus::Events::Emitter (module)">Events::Emitter</a></span></h3>
   <p class="inherited"><span class='object_link'><a href="Events/Emitter.html#emit_events_for-instance_method" title="Servus::Events::Emitter#emit_events_for (method)">#emit_events_for</a></span>, <span class='object_link'><a href="Events/Emitter.html#emit_result_events!-class_method" title="Servus::Events::Emitter.emit_result_events! (method)">emit_result_events!</a></span></p>
 
@@ -571,12 +582,12 @@ including automatic validation, logging, benchmarking, and error handling.</p>
       <pre class="lines">
 
 
-249
-250
-251</pre>
+257
+258
+259</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 249</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 257</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_arguments_schema'>arguments_schema</span>
   <span class='ivar'>@arguments_schema</span>
@@ -634,12 +645,12 @@ including automatic validation, logging, benchmarking, and error handling.</p>
       <pre class="lines">
 
 
-255
-256
-257</pre>
+263
+264
+265</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 255</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 263</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_result_schema'>result_schema</span>
   <span class='ivar'>@result_schema</span>
@@ -743,13 +754,13 @@ including automatic validation, logging, benchmarking, and error handling.</p>
       <pre class="lines">
 
 
-285
-286
-287
-288</pre>
+293
+294
+295
+296</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 285</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 293</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_after_call'>after_call</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='comma'>,</span> <span class='id identifier rubyid_instance'>instance</span><span class='rparen'>)</span>
   <span class='const'><span class='object_link'><a href="#Validator-constant" title="Servus::Base::Validator (constant)">Validator</a></span></span><span class='period'>.</span><span class='id identifier rubyid_validate_result!'>validate_result!</span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_result'>result</span><span class='rparen'>)</span>
@@ -832,13 +843,13 @@ including automatic validation, logging, benchmarking, and error handling.</p>
       <pre class="lines">
 
 
-268
-269
-270
-271</pre>
+276
+277
+278
+279</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 268</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 276</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_before_call'>before_call</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
   <span class='const'><span class='object_link'><a href="#Logger-constant" title="Servus::Base::Logger (constant)">Logger</a></span></span><span class='period'>.</span><span class='id identifier rubyid_log_call'>log_call</span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
@@ -934,18 +945,18 @@ The duration is logged along with the success/failure status of the service.</p>
       <pre class="lines">
 
 
-300
-301
-302
-303
-304
-305
-306
-307
-308</pre>
+308
+309
+310
+311
+312
+313
+314
+315
+316</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 300</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 308</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid__args'>_args</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_start_time'>start_time</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='period'>.</span><span class='id identifier rubyid_utc'>utc</span>
@@ -1108,7 +1119,6 @@ service lifecycle including:</p>
       <pre class="lines">
 
 
-184
 185
 186
 187
@@ -1123,16 +1133,31 @@ service lifecycle including:</p>
 196
 197
 198
-199</pre>
+199
+200
+201
+202
+203
+204
+205
+206
+207</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 184</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 185</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_before_call'>before_call</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
 
   <span class='id identifier rubyid_instance'>instance</span> <span class='op'>=</span> <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span> <span class='rbrace'>}</span>
+
+  <span class='comment'># Wrap execution in catch block to handle guard failures
+</span>  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_catch'>catch</span><span class='lparen'>(</span><span class='symbol'>:guard_failure</span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># If result is a GuardError, a guard failed - wrap in failure Response
+</span>  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="#Response-constant" title="Servus::Base::Response (constant)">Response</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>false</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='id identifier rubyid_result'>result</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Servus.html" title="Servus (module)">Servus</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support.html" title="Servus::Support (module)">Support</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors.html" title="Servus::Support::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors/GuardError.html" title="Servus::Support::Errors::GuardError (class)">GuardError</a></span></span><span class='rparen'>)</span>
 
   <span class='id identifier rubyid_after_call'>after_call</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='comma'>,</span> <span class='id identifier rubyid_instance'>instance</span><span class='rparen'>)</span>
 
@@ -1261,13 +1286,13 @@ version will deprecate those constants in favor of this DSL.</p>
       <pre class="lines">
 
 
-240
-241
-242
-243</pre>
+248
+249
+250
+251</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 240</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 248</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_schema'>schema</span><span class='lparen'>(</span><span class='label'>arguments:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>result:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='ivar'>@arguments_schema</span> <span class='op'>=</span> <span class='id identifier rubyid_arguments'>arguments</span><span class='period'>.</span><span class='id identifier rubyid_with_indifferent_access'>with_indifferent_access</span> <span class='kw'>if</span> <span class='id identifier rubyid_arguments'>arguments</span>
@@ -1403,7 +1428,6 @@ the exception is raised.</p>
       <pre class="lines">
 
 
-142
 143
 144
 145
@@ -1411,10 +1435,11 @@ the exception is raised.</p>
 147
 148
 149
-150</pre>
+150
+151</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 142</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 143</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_error!'>error!</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>type:</span> <span class='const'><span class='object_link'><a href="../Servus.html" title="Servus (module)">Servus</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support.html" title="Servus::Support (module)">Support</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors.html" title="Servus::Support::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span></span><span class='rparen'>)</span>
   <span class='id identifier rubyid_error'>error</span> <span class='op'>=</span> <span class='id identifier rubyid_type'>type</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
@@ -1556,13 +1581,13 @@ The failure is logged automatically and returns a response containing the error.
       <pre class="lines">
 
 
-114
 115
 116
-117</pre>
+117
+118</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 114</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 115</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_failure'>failure</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>type:</span> <span class='const'><span class='object_link'><a href="../Servus.html" title="Servus (module)">Servus</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support.html" title="Servus::Support (module)">Support</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors.html" title="Servus::Support::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Support/Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">ServiceError</a></span></span><span class='rparen'>)</span>
   <span class='id identifier rubyid_error'>error</span> <span class='op'>=</span> <span class='id identifier rubyid_type'>type</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
@@ -1668,12 +1693,12 @@ The data will be validated against the RESULT_SCHEMA if one is defined.</p>
       <pre class="lines">
 
 
-80
 81
-82</pre>
+82
+83</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 80</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/base.rb', line 81</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_success'>success</span><span class='lparen'>(</span><span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span>
   <span class='const'><span class='object_link'><a href="#Response-constant" title="Servus::Base::Response (constant)">Response</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>true</span><span class='comma'>,</span> <span class='id identifier rubyid_data'>data</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rparen'>)</span>
@@ -1688,7 +1713,7 @@ The data will be validated against the RESULT_SCHEMA if one is defined.</p>
 </div>
 
       <div id="footer">
-  Generated on Sat Dec  6 11:17:46 2025 by
+  Generated on Tue Dec 16 15:45:05 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.0).
 </div>

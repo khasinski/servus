@@ -406,23 +406,107 @@ a service object.</p>
 
 <p>The block receives the exception and has access to <code>success</code> and <code>failure</code> methods for creating the response.</p>
 
+<h2 id="guards"><strong>Guards</strong></h2>
+
+<p>Guards are reusable validation rules that halt service execution when conditions aren&#39;t met. They provide declarative precondition checking with rich error responses.</p>
+
+<h3 id="built-in-guards">Built-in Guards</h3>
+
+<pre class="code ruby"><code class="ruby"><span class='kw'>def</span> <span class='id identifier rubyid_call'>call</span>
+  <span class='comment'># Validate values are present (not nil or empty)
+</span>  <span class='id identifier rubyid_enforce_presence!'>enforce_presence!</span><span class='lparen'>(</span><span class='label'>user:</span> <span class='id identifier rubyid_user'>user</span><span class='comma'>,</span> <span class='label'>account:</span> <span class='id identifier rubyid_account'>account</span><span class='rparen'>)</span>
+
+  <span class='comment'># Validate object attributes are truthy
+</span>  <span class='id identifier rubyid_enforce_truthy!'>enforce_truthy!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_user'>user</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='symbol'>:active</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_enforce_truthy!'>enforce_truthy!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_user'>user</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='lbracket'>[</span><span class='symbol'>:active</span><span class='comma'>,</span> <span class='symbol'>:verified</span><span class='rbracket'>]</span><span class='rparen'>)</span>  <span class='comment'># all must be truthy
+</span>
+  <span class='comment'># Validate object attributes are falsey
+</span>  <span class='id identifier rubyid_enforce_falsey!'>enforce_falsey!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_user'>user</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='symbol'>:banned</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_enforce_falsey!'>enforce_falsey!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_post'>post</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='lbracket'>[</span><span class='symbol'>:deleted</span><span class='comma'>,</span> <span class='symbol'>:hidden</span><span class='rbracket'>]</span><span class='rparen'>)</span>  <span class='comment'># all must be falsey
+</span>
+  <span class='comment'># Validate attribute matches expected value(s)
+</span>  <span class='id identifier rubyid_enforce_state!'>enforce_state!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_order'>order</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='symbol'>:status</span><span class='comma'>,</span> <span class='label'>is:</span> <span class='symbol'>:pending</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_enforce_state!'>enforce_state!</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_account'>account</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='symbol'>:status</span><span class='comma'>,</span> <span class='label'>is:</span> <span class='lbracket'>[</span><span class='symbol'>:active</span><span class='comma'>,</span> <span class='symbol'>:trial</span><span class='rbracket'>]</span><span class='rparen'>)</span>  <span class='comment'># any match passes
+</span>
+  <span class='comment'># ... business logic ...
+</span>  <span class='id identifier rubyid_success'>success</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='rparen'>)</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="predicate-methods">Predicate Methods</h3>
+
+<p>Each guard has a predicate version for conditional logic:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='kw'>if</span> <span class='id identifier rubyid_check_truthy?'>check_truthy?</span><span class='lparen'>(</span><span class='label'>on:</span> <span class='id identifier rubyid_user'>user</span><span class='comma'>,</span> <span class='label'>check:</span> <span class='symbol'>:premium</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_apply_premium_discount'>apply_premium_discount</span>
+<span class='kw'>else</span>
+  <span class='id identifier rubyid_apply_standard_rate'>apply_standard_rate</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="custom-guards">Custom Guards</h3>
+
+<p>Create custom guards in <code>app/guards/</code>:</p>
+
+<pre class="code bash"><code class="bash">$ rails g servus:guard open_account
+=&gt;    create  app/guards/open_account_guard.rb
+      create  spec/guards/open_account_guard_spec.rb
+</code></pre>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># app/guards/open_account_guard.rb
+</span><span class='kw'>class</span> <span class='const'>OpenAccountGuard</span> <span class='op'>&lt;</span> <span class='const'><span class='object_link'><a href="Servus.html" title="Servus (module)">Servus</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Servus/Guard.html" title="Servus::Guard (class)">Guard</a></span></span>
+  <span class='id identifier rubyid_http_status'>http_status</span> <span class='int'>422</span>
+  <span class='id identifier rubyid_error_code'>error_code</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>open_account_required</span><span class='tstring_end'>&#39;</span></span>
+
+  <span class='id identifier rubyid_message'>message</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Invalid account: %&lt;name&gt; does not have an open account</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_message_data'>message_data</span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>def</span> <span class='id identifier rubyid_test'>test</span><span class='lparen'>(</span><span class='label'>user:</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_user'>user</span><span class='period'>.</span><span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_user'>user</span><span class='period'>.</span><span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_status_open?'>status_open?</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_private'>private</span>
+
+  <span class='kw'>def</span> <span class='id identifier rubyid_message_data'>message_data</span>
+    <span class='lbrace'>{</span>
+      <span class='label'>name:</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:user</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span>
+    <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span>
+
+<span class='comment'># Usage in services:
+</span><span class='comment'># enforce_open_account!(user: user_record)  # throws on failure
+</span><span class='comment'># check_open_account?(user: user_record)    # returns boolean
+</span></code></pre>
+
+<h3 id="guard-error-responses">Guard Error Responses</h3>
+
+<p>When a guard fails, the service returns a failure response with structured error data:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='const'>TransferService</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='label'>from_account:</span> <span class='id identifier rubyid_account'>account</span><span class='comma'>,</span> <span class='label'>amount:</span> <span class='int'>1000</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>          <span class='comment'># =&gt; false
+</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span>     <span class='comment'># =&gt; &quot;Invalid account: Bob Jones does not have an open account&quot;
+</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_code'>code</span>        <span class='comment'># =&gt; &quot;open_account_required&quot;
+</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_http_status'>http_status</span> <span class='comment'># =&gt; 422
+</span></code></pre>
+
 <h2 id="controller-helpers">Controller Helpers</h2>
 
-<p>Service objects can be called from controllers using the <code>run_service</code> and <code>render_service_object_error</code> helpers.</p>
+<p>Service objects can be called from controllers using the <code>run_service</code> and <code>render_service_error</code> helpers.</p>
 
 <h3 id="run_service">run_service</h3>
 
-<p><code>run_service</code> calls the service object with the provided parameters and set&#39;s an instance variable <code>@result</code> to the
-result of the service object if the result is successful. If the result is not successful, it will pass the result
-to error to the <code>render_service_object_error</code> helper. This allows for easy error handling in the controller for
-repetetive usecases.</p>
+<p><code>run_service</code> calls the service object with the provided parameters and sets an instance variable <code>@result</code> to the
+result of the service object. If the result is not successful, it automatically calls <code>render_service_error</code> with
+the error. This provides consistent error handling across controllers.</p>
 
 <pre class="code ruby"><code class="ruby"><span class='kw'>class</span> <span class='const'>SomeController</span> <span class='op'>&lt;</span> <span class='const'>AppController</span>
   <span class='comment'># Before
 </span>  <span class='kw'>def</span> <span class='id identifier rubyid_controller_action'>controller_action</span>
     <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='const'>Services</span><span class='op'>::</span><span class='const'>SomeServiceObject</span><span class='op'>::</span><span class='const'>Service</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_my_params'>my_params</span><span class='rparen'>)</span>
     <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>
-    <span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
 
   <span class='comment'># After
@@ -432,25 +516,40 @@ repetetive usecases.</p>
 <span class='kw'>end</span>
 </code></pre>
 
-<h3 id="render_service_object_error">render_service_object_error</h3>
+<h3 id="render_service_error">render_service_error</h3>
 
-<p><code>render_service_object_error</code> renders the error of a service object. It expects a hash with a <code>message</code> key and a <code>code</code> key from
-the api_error method of the service error. This is all setup by default for a JSON API response, thought the method can be
-overridden if needed to handle different usecases.</p>
+<p><code>render_service_error</code> renders a service error as JSON. It takes an error object (not a hash) and uses
+<code>error.http_status</code> for the response status and <code>error.api_error</code> for the response body.</p>
 
-<pre class="code ruby"><code class="ruby"><span class='comment'># Behind the scenes, render_service_object_error calls the following:
+<pre class="code ruby"><code class="ruby"><span class='comment'># Behind the scenes, render_service_error calls the following:
 </span><span class='comment'>#
-</span><span class='comment'>#  error = result.error.api_error
-</span><span class='comment'>#  =&gt; { message: &quot;Error message&quot;, code: 400 }
+</span><span class='comment'>#  render json: { error: error.api_error }, status: error.http_status
 </span><span class='comment'>#
-</span><span class='comment'>#  render json: { message: error[:message], code: error[:code] }, status: error[:code]
+</span><span class='comment'># Which produces a response like:
+</span><span class='comment'>#  { &quot;error&quot;: { &quot;code&quot;: &quot;not_found&quot;, &quot;message&quot;: &quot;User not found&quot; } }
+</span><span class='comment'>#  with HTTP status 404
 </span>
 <span class='kw'>class</span> <span class='const'>SomeController</span> <span class='op'>&lt;</span> <span class='const'>AppController</span>
   <span class='kw'>def</span> <span class='id identifier rubyid_controller_action'>controller_action</span>
     <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='const'>Services</span><span class='op'>::</span><span class='const'>SomeServiceObject</span><span class='op'>::</span><span class='const'>Service</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_my_params'>my_params</span><span class='rparen'>)</span>
     <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>
 
-    <span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<p>Override <code>render_service_error</code> in your controller to customize error response format:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='kw'>class</span> <span class='const'>ApplicationController</span> <span class='op'>&lt;</span> <span class='const'>ActionController</span><span class='op'>::</span><span class='const'>Base</span>
+  <span class='kw'>def</span> <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_render'>render</span> <span class='label'>json:</span> <span class='lbrace'>{</span>
+      <span class='label'>error:</span> <span class='lbrace'>{</span>
+        <span class='label'>type:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:code</span><span class='rbracket'>]</span><span class='comma'>,</span>
+        <span class='label'>details:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='comma'>,</span>
+        <span class='label'>timestamp:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span>
+      <span class='rbrace'>}</span>
+    <span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_http_status'>http_status</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span>
 </code></pre>
@@ -805,7 +904,7 @@ ERROR -- : Services::ProcessPayment::Service uncaught exception: NoMethodError -
 </div></div>
 
       <div id="footer">
-  Generated on Sat Dec  6 11:17:45 2025 by
+  Generated on Tue Dec 16 15:45:05 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.0).
 </div>

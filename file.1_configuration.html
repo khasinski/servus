@@ -63,7 +63,7 @@
 
 <h2 id="directory-configuration">Directory Configuration</h2>
 
-<p>Configure where Servus looks for schemas, services, and event handlers:</p>
+<p>Configure where Servus looks for schemas, services, event handlers, and guards:</p>
 
 <pre class="code ruby"><code class="ruby"><span class='comment'># config/initializers/servus.rb
 </span><span class='const'><span class='object_link'><a href="Servus.html" title="Servus (module)">Servus</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="Servus.html#configure-class_method" title="Servus.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
@@ -75,10 +75,13 @@
 
   <span class='comment'># Default: &#39;app/events&#39;
 </span>  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_events_dir'>events_dir</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>app/events</span><span class='tstring_end'>&#39;</span></span>
+
+  <span class='comment'># Default: &#39;app/guards&#39;
+</span>  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_guards_dir'>guards_dir</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>app/guards</span><span class='tstring_end'>&#39;</span></span>
 <span class='kw'>end</span>
 </code></pre>
 
-<p>These affect legacy file-based schemas and handler auto-loading. Schemas defined via the <code>schema</code> DSL method do not use files.</p>
+<p>These affect legacy file-based schemas, handler auto-loading, and guard auto-loading. Schemas defined via the <code>schema</code> DSL method do not use files.</p>
 
 <h2 id="schema-cache">Schema Cache</h2>
 
@@ -107,6 +110,50 @@
 </code></pre>
 
 <p>Servus respects ActiveJob queue configuration - no Servus-specific setup needed.</p>
+
+<h2 id="guards-configuration">Guards Configuration</h2>
+
+<h3 id="default-guards">Default Guards</h3>
+
+<p>Servus includes built-in guards (<code>PresenceGuard</code>, <code>TruthyGuard</code>, <code>FalseyGuard</code>, <code>StateGuard</code>) that are loaded by default. Disable them if you want to define your own:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># config/initializers/servus.rb
+</span><span class='const'><span class='object_link'><a href="Servus.html" title="Servus (module)">Servus</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="Servus.html#configure-class_method" title="Servus.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+  <span class='comment'># Default: true
+</span>  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_include_default_guards'>include_default_guards</span> <span class='op'>=</span> <span class='kw'>false</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="guard-auto-loading">Guard Auto-Loading</h3>
+
+<p>In Rails, custom guards in <code>app/guards/</code> are automatically loaded. The Railtie eager-loads all <code>*_guard.rb</code> files from <code>config.guards_dir</code>:</p>
+
+<pre class="code ruby"><code class="ruby">app/guards/
+├── sufficient_balance_guard.rb
+├── valid_amount_guard.rb
+└── authorized_guard.rb
+</code></pre>
+
+<p>Guards define methods on <code>Servus::Guards</code> when inherited from <code>Servus::Guard</code>. The <code>Guard</code> suffix is stripped from the method name:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># app/guards/sufficient_balance_guard.rb
+</span><span class='kw'>class</span> <span class='const'>SufficientBalanceGuard</span> <span class='op'>&lt;</span> <span class='const'><span class='object_link'><a href="Servus.html" title="Servus (module)">Servus</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Servus/Guard.html" title="Servus::Guard (class)">Guard</a></span></span>
+  <span class='id identifier rubyid_http_status'>http_status</span> <span class='int'>422</span>
+  <span class='id identifier rubyid_error_code'>error_code</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>insufficient_balance</span><span class='tstring_end'>&#39;</span></span>
+
+  <span class='id identifier rubyid_message'>message</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Insufficient balance: need %&lt;required&gt;s, have %&lt;available&gt;s</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>do</span>
+    <span class='lbrace'>{</span> <span class='label'>required:</span> <span class='id identifier rubyid_amount'>amount</span><span class='comma'>,</span> <span class='label'>available:</span> <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_balance'>balance</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>def</span> <span class='id identifier rubyid_test'>test</span><span class='lparen'>(</span><span class='label'>account:</span><span class='comma'>,</span> <span class='label'>amount:</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_account'>account</span><span class='period'>.</span><span class='id identifier rubyid_balance'>balance</span> <span class='op'>&gt;=</span> <span class='id identifier rubyid_amount'>amount</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span>
+
+<span class='comment'># Usage in services:
+</span><span class='comment'># enforce_sufficient_balance!(account: account, amount: 100)  # throws on failure
+</span><span class='comment'># check_sufficient_balance?(account: account, amount: 100)    # returns boolean
+</span></code></pre>
 
 <h2 id="event-bus-configuration">Event Bus Configuration</h2>
 
@@ -157,7 +204,7 @@
 </div></div>
 
       <div id="footer">
-  Generated on Sat Dec  6 11:17:45 2025 by
+  Generated on Tue Dec 16 15:45:05 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.0).
 </div>

@@ -115,7 +115,7 @@ when Servus is loaded in a Rails application.</p>
     
       <li><span class='object_link'><a href="#run_service-instance_method" title="Servus::Helpers::ControllerHelpers#run_service (method)">#run_service</a></span></li>
     
-      <li><span class='object_link'><a href="#render_service_object_error-instance_method" title="Servus::Helpers::ControllerHelpers#render_service_object_error (method)">#render_service_object_error</a></span></li>
+      <li><span class='object_link'><a href="#render_service_error-instance_method" title="Servus::Helpers::ControllerHelpers#render_service_error (method)">#render_service_error</a></span></li>
     
   </ul>
 
@@ -137,7 +137,7 @@ when Servus is loaded in a Rails application.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#render_service_object_error-instance_method" title="#render_service_object_error (instance method)">#<strong>render_service_object_error</strong>(api_error)  &#x21d2; void </a>
+      <a href="#render_service_error-instance_method" title="#render_service_error (instance method)">#<strong>render_service_error</strong>(error)  &#x21d2; void </a>
     
 
     
@@ -190,9 +190,9 @@ when Servus is loaded in a Rails application.</p>
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="render_service_object_error-instance_method">
+  <h3 class="signature first" id="render_service_error-instance_method">
   
-    #<strong>render_service_object_error</strong>(api_error)  &#x21d2; <tt>void</tt> 
+    #<strong>render_service_error</strong>(error)  &#x21d2; <tt>void</tt> 
   
 
   
@@ -202,9 +202,8 @@ when Servus is loaded in a Rails application.</p>
   <div class="discussion">
     <p class="note returns_void">This method returns an undefined value.</p><p>Renders a service error as a JSON response.</p>
 
-<p>This method is called automatically by <span class='object_link'><a href="#run_service-instance_method" title="Servus::Helpers::ControllerHelpers#run_service (method)">#run_service</a></span> when a service fails,
-but can also be called manually for custom error handling. It renders the
-error&#39;s api_error hash with the appropriate HTTP status code.</p>
+<p>Uses error.http_status for the response status code and
+error.api_error for the response body.</p>
 
 <p>Override this method in your controller to customize error response format.</p>
 
@@ -220,24 +219,21 @@ error&#39;s api_error hash with the appropriate HTTP status code.</p>
         <h5 class="example_title"><div class='inline'><p>Default behavior</p>
 </div></h5>
       
-      <pre class="example code"><code><span class='comment'># Renders: { code: :not_found, message: &quot;User not found&quot; }
-</span><span class='comment'># With status: 404
-</span><span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span></code></pre>
+      <pre class="example code"><code><span class='comment'># Renders: { error: { code: :not_found, message: &quot;User not found&quot; } }
+</span><span class='comment'># With status: 404</span></code></pre>
     
       
         <h5 class="example_title"><div class='inline'><p>Custom error rendering</p>
 </div></h5>
       
-      <pre class="example code"><code><span class='kw'>class</span> <span class='const'>ApplicationController</span> <span class='op'>&lt;</span> <span class='const'>ActionController</span><span class='op'>::</span><span class='const'>Base</span>
-  <span class='kw'>def</span> <span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span>
-    <span class='id identifier rubyid_render'>render</span> <span class='label'>json:</span> <span class='lbrace'>{</span>
-      <span class='label'>error:</span> <span class='lbrace'>{</span>
-        <span class='label'>type:</span> <span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:code</span><span class='rbracket'>]</span><span class='comma'>,</span>
-        <span class='label'>details:</span> <span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:message</span><span class='rbracket'>]</span><span class='comma'>,</span>
-        <span class='label'>timestamp:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span>
-      <span class='rbrace'>}</span>
-    <span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:code</span><span class='rbracket'>]</span>
-  <span class='kw'>end</span>
+      <pre class="example code"><code><span class='kw'>def</span> <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_render'>render</span> <span class='label'>json:</span> <span class='lbrace'>{</span>
+    <span class='label'>error:</span> <span class='lbrace'>{</span>
+      <span class='label'>type:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:code</span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>details:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='comma'>,</span>
+      <span class='label'>timestamp:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span>
+    <span class='rbrace'>}</span>
+  <span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_http_status'>http_status</span>
 <span class='kw'>end</span></code></pre>
     
   </div>
@@ -246,15 +242,15 @@ error&#39;s api_error hash with the appropriate HTTP status code.</p>
   
     <li>
       
-        <span class='name'>api_error</span>
+        <span class='name'>error</span>
       
       
-        <span class='type'>(<tt>Hash</tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="../Support/Errors/ServiceError.html" title="Servus::Support::Errors::ServiceError (class)">Servus::Support::Errors::ServiceError</a></span></tt>)</span>
       
       
       
         &mdash;
-        <div class='inline'><p>error hash with :code and :message keys from <span class='object_link'><a href="../Support/Errors/ServiceError.html#api_error-instance_method" title="Servus::Support::Errors::ServiceError#api_error (method)">Support::Errors::ServiceError#api_error</a></span></p>
+        <div class='inline'><p>the error to render</p>
 </div>
       
     </li>
@@ -267,7 +263,7 @@ error&#39;s api_error hash with the appropriate HTTP status code.</p>
     
       <li><span class='object_link'><a href="../Support/Errors/ServiceError.html#api_error-instance_method" title="Servus::Support::Errors::ServiceError#api_error (method)">Support::Errors::ServiceError#api_error</a></span></li>
     
-      <li><span class='object_link'><a href="#run_service-instance_method" title="Servus::Helpers::ControllerHelpers#run_service (method)">#run_service</a></span></li>
+      <li><span class='object_link'><a href="../Support/Errors/ServiceError.html#http_status-instance_method" title="Servus::Support::Errors::ServiceError#http_status (method)">Support::Errors::ServiceError#http_status</a></span></li>
     
   </ul>
 
@@ -277,15 +273,15 @@ error&#39;s api_error hash with the appropriate HTTP status code.</p>
       <pre class="lines">
 
 
-97
-98
-99</pre>
+69
+70
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/helpers/controller_helpers.rb', line 97</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/helpers/controller_helpers.rb', line 69</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_render'>render</span> <span class='label'>json:</span> <span class='id identifier rubyid_api_error'>api_error</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_api_error'>api_error</span><span class='lbracket'>[</span><span class='symbol'>:code</span><span class='rbracket'>]</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_render'>render</span> <span class='label'>json:</span> <span class='lbrace'>{</span> <span class='label'>error:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span> <span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>status:</span> <span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_http_status'>http_status</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -305,12 +301,8 @@ error&#39;s api_error hash with the appropriate HTTP status code.</p>
   <div class="discussion">
     <p>Executes a service and handles success/failure automatically.</p>
 
-<p>This method runs the service with the provided parameters. On success,
-it stores the result in @result for use in views. On failure, it
-automatically calls <span class='object_link'><a href="#render_service_object_error-instance_method" title="Servus::Helpers::ControllerHelpers#render_service_object_error (method)">#render_service_object_error</a></span> with the error details.</p>
-
-<p>The result is always stored in the @result instance variable, making it
-available in views for rendering successful responses.</p>
+<p>On success, stores the result in @result for use in views.
+On failure, renders the error as JSON with the appropriate HTTP status.</p>
 
 
   </div>
@@ -327,32 +319,6 @@ available in views for rendering successful responses.</p>
       <pre class="example code"><code><span class='kw'>class</span> <span class='const'>UsersController</span> <span class='op'>&lt;</span> <span class='const'>ApplicationController</span>
   <span class='kw'>def</span> <span class='id identifier rubyid_create'>create</span>
     <span class='id identifier rubyid_run_service'>run_service</span> <span class='const'>Services</span><span class='op'>::</span><span class='const'>CreateUser</span><span class='op'>::</span><span class='const'>Service</span><span class='comma'>,</span> <span class='id identifier rubyid_user_params'>user_params</span>
-    <span class='comment'># If successful, @result is available for rendering
-</span>    <span class='comment'># If failed, error response is automatically rendered
-</span>  <span class='kw'>end</span>
-<span class='kw'>end</span></code></pre>
-    
-      
-        <h5 class="example_title"><div class='inline'><p>Using @result in views</p>
-</div></h5>
-      
-      <pre class="example code"><code><span class='comment'># In your Jbuilder view (create.json.jbuilder)
-</span><span class='id identifier rubyid_json'>json</span><span class='period'>.</span><span class='id identifier rubyid_user'>user</span> <span class='kw'>do</span>
-  <span class='id identifier rubyid_json'>json</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span> <span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='symbol'>:user_id</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_json'>json</span><span class='period'>.</span><span class='id identifier rubyid_email'>email</span> <span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='symbol'>:email</span><span class='rbracket'>]</span>
-<span class='kw'>end</span></code></pre>
-    
-      
-        <h5 class="example_title"><div class='inline'><p>Manual success handling</p>
-</div></h5>
-      
-      <pre class="example code"><code><span class='kw'>class</span> <span class='const'>UsersController</span> <span class='op'>&lt;</span> <span class='const'>ApplicationController</span>
-  <span class='kw'>def</span> <span class='id identifier rubyid_create'>create</span>
-    <span class='id identifier rubyid_run_service'>run_service</span> <span class='const'>Services</span><span class='op'>::</span><span class='const'>CreateUser</span><span class='op'>::</span><span class='const'>Service</span><span class='comma'>,</span> <span class='id identifier rubyid_user_params'>user_params</span>
-    <span class='kw'>return</span> <span class='kw'>unless</span> <span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>
-
-    <span class='comment'># Custom success handling
-</span>    <span class='id identifier rubyid_redirect_to'>redirect_to</span> <span class='id identifier rubyid_user_path'>user_path</span><span class='lparen'>(</span><span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='symbol'>:user_id</span><span class='rbracket'>]</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></code></pre>
     
@@ -413,7 +379,7 @@ available in views for rendering successful responses.</p>
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li><span class='object_link'><a href="#render_service_object_error-instance_method" title="Servus::Helpers::ControllerHelpers#render_service_object_error (method)">#render_service_object_error</a></span></li>
+      <li><span class='object_link'><a href="#render_service_error-instance_method" title="Servus::Helpers::ControllerHelpers#render_service_error (method)">#render_service_error</a></span></li>
     
       <li><span class='object_link'><a href="../Base.html#call-class_method" title="Servus::Base.call (method)">Base.call</a></span></li>
     
@@ -425,17 +391,17 @@ available in views for rendering successful responses.</p>
       <pre class="lines">
 
 
-61
-62
-63
-64</pre>
+37
+38
+39
+40</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/servus/helpers/controller_helpers.rb', line 61</span>
+      <pre class="code"><span class="info file"># File 'lib/servus/helpers/controller_helpers.rb', line 37</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_run_service'>run_service</span><span class='lparen'>(</span><span class='id identifier rubyid_klass'>klass</span><span class='comma'>,</span> <span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
   <span class='ivar'>@result</span> <span class='op'>=</span> <span class='id identifier rubyid_klass'>klass</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_render_service_object_error'>render_service_object_error</span><span class='lparen'>(</span><span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='period'>.</span><span class='id identifier rubyid_api_error'>api_error</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>
+  <span class='id identifier rubyid_render_service_error'>render_service_error</span><span class='lparen'>(</span><span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='ivar'>@result</span><span class='period'>.</span><span class='id identifier rubyid_success?'>success?</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -447,7 +413,7 @@ available in views for rendering successful responses.</p>
 </div>
 
       <div id="footer">
-  Generated on Sat Dec  6 11:17:46 2025 by
+  Generated on Tue Dec 16 15:45:05 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.0).
 </div>
