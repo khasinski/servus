@@ -207,9 +207,9 @@ module Servus
       def collect_emitted_events
         events = Set.new
 
-        ObjectSpace.each_object(Class)
-                   .select { |klass| klass < Servus::Base }
-                   .each do |service_class|
+        services = ObjectSpace.each_object(Class).select { |klass| klass < Servus::Base }
+
+        services.each do |service_class|
           service_class.event_emissions.each_value do |emissions|
             emissions.each { |emission| events << emission[:event_name] }
           end
@@ -226,9 +226,9 @@ module Servus
       def find_orphaned_handlers(emitted_events)
         orphaned = []
 
-        ObjectSpace.each_object(Class)
-                   .select { |klass| klass < Servus::EventHandler && klass != Servus::EventHandler }
-                   .each do |handler_class|
+        handlers = ObjectSpace.each_object(Class).select { _1 < Servus::EventHandler && _1 != Servus::EventHandler }
+
+        handlers.each do |handler_class|
           next unless handler_class.event_name
           next if emitted_events.include?(handler_class.event_name)
 
@@ -245,15 +245,13 @@ module Servus
       # @return [Servus::Support::Response] the service result
       # @api private
       def invoke_service(invocation, payload)
-        service_kwargs = invocation[:mapper].call(payload)
+        use_async = invocation.dig(:options, :async) || false
 
-        async = invocation.dig(:options, :async) || false
-        queue = invocation.dig(:options, :queue) || nil
-
-        if async
-          service_kwargs = service_kwargs.merge(queue: queue) if queue
+        if use_async
+          service_kwargs = prepare_call_sync_args(invocation, payload)
           invocation[:service_class].call_async(**service_kwargs)
         else
+          service_kwargs = invocation[:mapper].call(payload)
           invocation[:service_class].call(**service_kwargs)
         end
       end
@@ -269,6 +267,23 @@ module Servus
         return false if options[:unless]&.call(payload)
 
         true
+      end
+
+      # Prepares the service arguments by merging event payload with job options.
+      #
+      # @param invocation [Hash] the invocation configuration
+      # @param payload [Hash] the event payload
+      # @return [Hash] combined service arguments
+      def prepare_call_sync_args(invocation, payload)
+        mapper  = invocation[:mapper]
+        options = invocation[:options]
+
+        # Extract service arguments and merge with job options
+        job_opts = options.slice(:queue, :wait, :wait_until, :priority, :job_options).compact
+
+        mapper
+          .call(payload)
+          .merge(job_opts)
       end
     end
   end

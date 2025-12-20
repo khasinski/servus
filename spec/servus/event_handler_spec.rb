@@ -285,6 +285,133 @@ RSpec.describe Servus::EventHandler do
 
       expect(dummy_service.async_called_with).to eq({ user_id: 789, queue: :mailers })
     end
+
+    it 'passes wait option to call_async' do
+      dummy_service = Class.new(Servus::Base) do
+        def self.call_async(**args)
+          @async_called_with = args
+        end
+
+        class << self
+          attr_reader :async_called_with
+        end
+      end
+
+      handler_class = Class.new(described_class) do
+        handles :user_created
+
+        invoke dummy_service, async: true, wait: 5.minutes do |payload|
+          { user_id: payload[:user_id] }
+        end
+      end
+
+      handler_class.handle({ user_id: 123 })
+
+      expect(dummy_service.async_called_with).to eq({ user_id: 123, wait: 5.minutes })
+    end
+
+    it 'passes wait_until option to call_async' do
+      dummy_service = Class.new(Servus::Base) do
+        def self.call_async(**args)
+          @async_called_with = args
+        end
+
+        class << self
+          attr_reader :async_called_with
+        end
+      end
+
+      tomorrow = Date.tomorrow.beginning_of_day
+
+      handler_class = Class.new(described_class) do
+        handles :user_created
+
+        invoke dummy_service, async: true, wait_until: tomorrow do |payload|
+          { user_id: payload[:user_id] }
+        end
+      end
+
+      handler_class.handle({ user_id: 123 })
+
+      expect(dummy_service.async_called_with).to eq({ user_id: 123, wait_until: tomorrow })
+    end
+
+    it 'passes priority option to call_async' do
+      dummy_service = Class.new(Servus::Base) do
+        def self.call_async(**args)
+          @async_called_with = args
+        end
+
+        class << self
+          attr_reader :async_called_with
+        end
+      end
+
+      handler_class = Class.new(described_class) do
+        handles :user_created
+
+        invoke dummy_service, async: true, priority: 10 do |payload|
+          { user_id: payload[:user_id] }
+        end
+      end
+
+      handler_class.handle({ user_id: 123 })
+
+      expect(dummy_service.async_called_with).to eq({ user_id: 123, priority: 10 })
+    end
+
+    it 'passes job_options to call_async' do
+      dummy_service = Class.new(Servus::Base) do
+        def self.call_async(**args)
+          @async_called_with = args
+        end
+
+        class << self
+          attr_reader :async_called_with
+        end
+      end
+
+      handler_class = Class.new(described_class) do
+        handles :user_created
+
+        invoke dummy_service, async: true, job_options: { tags: ['reports'] } do |payload|
+          { user_id: payload[:user_id] }
+        end
+      end
+
+      handler_class.handle({ user_id: 123 })
+
+      expect(dummy_service.async_called_with).to eq({ user_id: 123, job_options: { tags: ['reports'] } })
+    end
+
+    it 'passes multiple scheduling options to call_async' do
+      dummy_service = Class.new(Servus::Base) do
+        def self.call_async(**args)
+          @async_called_with = args
+        end
+
+        class << self
+          attr_reader :async_called_with
+        end
+      end
+
+      handler_class = Class.new(described_class) do
+        handles :user_created
+
+        invoke dummy_service, async: true, queue: :critical, wait: 10.minutes, priority: 5 do |payload|
+          { user_id: payload[:user_id] }
+        end
+      end
+
+      handler_class.handle({ user_id: 123 })
+
+      expect(dummy_service.async_called_with).to eq({
+                                                      user_id: 123,
+                                                      queue: :critical,
+                                                      wait: 10.minutes,
+                                                      priority: 5
+                                                    })
+    end
   end
 
   describe '.validate_all_handlers!' do
