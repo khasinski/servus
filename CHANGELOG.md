@@ -1,3 +1,19 @@
+## [0.2.1] - 2025-12-20
+
+### Added
+
+- **EventHandler Scheduling Options**: Extended the `invoke` DSL to support ActiveJob scheduling options
+  - `:wait` - delay execution (e.g., `5.minutes`)
+  - `:wait_until` - schedule for specific time
+  - `:priority` - job priority
+  - `:job_options` - additional ActiveJob options
+  - Options are passed through to `call_async`, enabling delayed and scheduled event handling
+
+- **Custom HTTP Error Classes**: Added granular error classes for HTTP status handling
+  - Error classes for common HTTP statuses (400, 401, 403, 404, 409, 422, 429, 500, 502, 503, 504)
+  - Each error class has appropriate `http_status` and default `code`/`message`
+  - Enables more precise error handling and cleaner rescue blocks
+
 ## [0.2.0] - 2025-12-16
 
 ### Added
