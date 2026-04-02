@@ -69,6 +69,44 @@ module Servus
       def success?
         @success
       end
+
+      # Checks if the service execution failed.
+      #
+      # @return [Boolean] true if the service failed, false if it succeeded
+      #
+      # @example
+      #   result = MyService.call(params)
+      #   return render_error(result.error.message) if result.failure?
+      def failure?
+        !@success
+      end
+
+      # Allows direct access to success data keys as methods.
+      #
+      # When the response is successful and {#data} is a Hash, you can access
+      # its keys directly on the response object for a cleaner calling interface.
+      #
+      # @example
+      #   result = MyService.call(user_id: 123)
+      #   result.user   # equivalent to result.data[:user]
+      #   result.token  # equivalent to result.data[:token]
+      def method_missing(method_name, *args, &block)
+        if @data.is_a?(Hash)
+          key = method_name.to_s
+          return @data[key.to_sym] if @data.key?(key.to_sym)
+          return @data[key] if @data.key?(key)
+        end
+        super
+      end
+
+      # @api private
+      def respond_to_missing?(method_name, include_private = false)
+        if @data.is_a?(Hash)
+          key = method_name.to_s
+          return true if @data.key?(key.to_sym) || @data.key?(key)
+        end
+        super
+      end
     end
   end
 end
