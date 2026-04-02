@@ -90,7 +90,7 @@ module Servus
       #   result = MyService.call(user_id: 123)
       #   result.user   # equivalent to result.data[:user]
       #   result.token  # equivalent to result.data[:token]
-      def method_missing(method_name, *args, &block)
+      def method_missing(method_name, *args, &)
         if @data.is_a?(Hash)
           key = method_name.to_s
           return @data[key.to_sym] if @data.key?(key.to_sym)
